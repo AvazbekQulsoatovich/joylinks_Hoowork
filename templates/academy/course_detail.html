@@ -1,0 +1,109 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ course.name }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'course_list' %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Kurslar
+        </a>
+        <h1 class="page-title">{{ course.name }}</h1>
+    </div>
+    {% if user.role == 'ADMIN' %}
+    <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'course_update' course.pk %}" class="btn btn-secondary">
+            <i data-lucide="edit" style="width: 18px; height: 18px;"></i> Tahrirlash
+        </a>
+        <a href="{% url 'group_create' %}?course={{ course.pk }}" class="btn btn-primary">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Yangi Guruh
+        </a>
+    </div>
+    {% endif %}
+</header>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Kurs Tavsifi va Guruhlar -->
+    <div>
+        <div class="card mb-3">
+            <h3 class="card-title mb-2">Kurs tavsifi</h3>
+            <p style="white-space: pre-wrap;">{{ course.description|default:"Tavsif berilmagan." }}</p>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title mb-3">Kurs guruhlari</h3>
+            {% if groups %}
+            <div class="table-container" style="box-shadow: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Guruh nomi</th>
+                            <th>Talabalar</th>
+                            <th>O'qituvchilar</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                        <tr>
+                            <td><strong>{{ group.name }}</strong></td>
+                            <td>{{ group.students.count }}</td>
+                            <td>
+                                {% for teacher in group.teachers.all %}
+                                <span class="badge badge-primary">{{ teacher.get_full_name|default:teacher.username
+                                    }}</span>
+                                {% empty %}
+                                <span class="text-muted">Biriktirilmagan</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <a href="{% url 'group_detail' group.pk %}" class="btn btn-sm btn-outline">
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">Bu kursda hali guruhlar yo'q.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistika -->
+    <div>
+        <div class="card mb-3">
+            <h3 class="card-title mb-3">Umumiy ma'lumot</h3>
+            <div class="stat-card" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
+                <div class="stat-value" style="font-size: 2rem; color: var(--primary);">{{ avg_score }}%</div>
+                <div class="stat-label">O'rtacha o'zlashtirish</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Jami talabalar:</span>
+                    <span class="font-bold">{{ total_students }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Jami vazifalar:</span>
+                    <span class="font-bold">{{ total_homeworks }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Yaratilgan:</span>
+                    <span>{{ course.created_at|date:"d.m.Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if user.role == 'ADMIN' %}
+        <a href="{% url 'export_course' course.pk %}" class="btn btn-success" style="width: 100%;">
+            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+            Excel Hisobot Yuklash
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

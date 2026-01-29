@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Talabalar qo'shish - {{ group.name }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'group_detail' group.pk %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Guruh Tafsilotlari
+        </a>
+        <h1 class="page-title">Guruhga talabalar qo'shish</h1>
+        <p class="page-subtitle">{{ group.name }} ({{ group.course.name }})</p>
+    </div>
+</header>
+
+<div class="card">
+    <div style="margin-bottom: 2rem;">
+        <h3 class="card-title">Talabalarni tanlang</h3>
+        <p class="text-muted">Guruhga qo'shiladigan talabalarni tanlab 'Qo'shish' tugmasini bosing</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div
+            style="max-height: 500px; overflow-y: auto; padding: 1rem; background: var(--gray-50); border-radius: var(--radius); margin-bottom: 2rem;">
+            {% if form.students.queryset %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+                {% for student in form.students.queryset %}
+                <div class="list-item" style="margin-bottom: 0;">
+                    <input type="checkbox" name="students" value="{{ student.pk }}" id="student_{{ student.pk }}"
+                        style="width: 20px; height: 20px; cursor: pointer;">
+                    <label for="student_{{ student.pk }}"
+                        style="display: flex; flex: 1; align-items: center; gap: 1rem; cursor: pointer;">
+                        <div class="list-item-icon" style="width: 32px; height: 32px;">
+                            <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                        </div>
+                        <div class="list-item-content">
+                            <div class="list-item-title">{{ student.get_full_name|default:student.username }}</div>
+                            <div class="list-item-subtitle">{{ student.username }}</div>
+                        </div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center text-muted">Hamma talabalar allaqachon guruhga qo'shilgan yoki talabalar mavjud emas.
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary btn-lg" {% if not form.students.queryset %}disabled{% endif %}>
+                <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i> Tanlanganlarni qo'shish
+            </button>
+            <a href="{% url 'group_detail' group.pk %}" class="btn btn-lg btn-secondary">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

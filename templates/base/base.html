@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="description" content="HooWork - Joylinks IT Academy Uyga Vazifa Tizimi">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/img/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>{% block title %}HooWork{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  {% if user.is_authenticated %}
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <h2 style="margin-bottom: 2rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="graduation-cap"></i> <span class="nav-text">HooWork</span>
+      </h2>
+      <nav style="flex: 1;">
+        <ul>
+          <li>
+            <a href="{% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+              class="nav-link">
+              <i data-lucide="layout-dashboard"></i> <span class="nav-text">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'course_list' %}" class="nav-link">
+              <i data-lucide="book-open"></i> <span class="nav-text">Kurslar</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'group_list' %}" class="nav-link">
+              <i data-lucide="users"></i> <span class="nav-text">Guruhlar</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'homework_list' %}" class="nav-link">
+              <i data-lucide="file-text"></i> <span class="nav-text">Vazifalar</span>
+            </a>
+          </li>
+          {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+          <li>
+            <a href="{% url 'teacher_submissions' %}" class="nav-link">
+              <i data-lucide="clipboard-check"></i> <span class="nav-text">Topshiriqlar</span>
+            </a>
+          </li>
+          {% endif %}
+          {% if user.role == 'ADMIN' %}
+          <li>
+            <a href="{% url 'user_list' %}" class="nav-link">
+              <i data-lucide="user-cog"></i> <span class="nav-text">Foydalanuvchilar</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'export_all' %}" class="nav-link">
+              <i data-lucide="download"></i> <span class="nav-text">Excel Yuklash</span>
+            </a>
+          </li>
+          {% endif %}
+          <li>
+            <a href="{% url 'notifications' %}" class="nav-link" style="position: relative;">
+              <i data-lucide="bell"></i> <span class="nav-text">Bildirishnomalar</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <a href="{% url 'logout' %}" class="nav-link logout">
+        <i data-lucide="log-out"></i> <span class="nav-text">Chiqish</span>
+      </a>
+    </aside>
+    <main class="main-content">
+      {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        <i
+          data-lucide="{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}alert-circle{% elif message.tags == 'warning' %}alert-triangle{% else %}info{% endif %}"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% else %}
+  {% block public_content %}{% endblock %}
+  {% endif %}
+
+  <script>
+    lucide.createIcons();
+
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/static/sw.js')
+          .then(function (registration) {
+            console.log('ServiceWorker registered:', registration.scope);
+          })
+          .catch(function (error) {
+            console.log('ServiceWorker registration failed:', error);
+          });
+      });
+    }
+
+    // Copy code functionality
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.code-block-copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const code = this.closest('.code-block').querySelector('code').textContent;
+          navigator.clipboard.writeText(code).then(() => {
+            this.innerHTML = '<i data-lucide="check"></i> Nusxalandi';
+            this.classList.add('copied');
+            lucide.createIcons();
+            setTimeout(() => {
+              this.innerHTML = '<i data-lucide="copy"></i> Nusxalash';
+              this.classList.remove('copied');
+              lucide.createIcons();
+            }, 2000);
+          });
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

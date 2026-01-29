@@ -1,0 +1,73 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Guruhlar - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Guruhlar</h1>
+        <p class="page-subtitle">O'quv guruhlari ro'yxati</p>
+    </div>
+    {% if user.role == 'ADMIN' %}
+    <a href="{% url 'group_create' %}" class="btn btn-primary">
+        <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+        Yangi Guruh
+    </a>
+    {% endif %}
+</header>
+
+{% if groups %}
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Guruh</th>
+                <th>Kurs</th>
+                <th>O'qituvchilar</th>
+                <th>Talabalar</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>
+                    <strong>{{ group.name }}</strong>
+                </td>
+                <td>{{ group.course.name }}</td>
+                <td>
+                    <span class="text-muted">{{ group.teacher_list|default:"-" }}</span>
+                </td>
+                <td>
+                    <span class="badge badge-info">{{ group.student_count }} talaba</span>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'group_detail' group.pk %}" class="btn btn-sm btn-outline">
+                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        {% if user.role == 'ADMIN' %}
+                        <a href="{% url 'group_update' group.pk %}" class="btn btn-sm btn-secondary">
+                            <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i data-lucide="users" style="width: 64px; height: 64px;"></i>
+        <h3>Guruhlar mavjud emas</h3>
+        <p>Hali birorta ham guruh yaratilmagan.</p>
+        {% if user.role == 'ADMIN' %}
+        <a href="{% url 'group_create' %}" class="btn btn-primary mt-2">Guruh yaratish</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

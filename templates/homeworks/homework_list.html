@@ -1,0 +1,126 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Vazifalar - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Vazifalar</h1>
+        <p class="page-subtitle">Barcha uyga vazifalar</p>
+    </div>
+    {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+    <a href="{% url 'homework_create' %}" class="btn btn-primary">
+        <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+        Yangi Vazifa
+    </a>
+    {% endif %}
+</header>
+
+{% if homeworks %}
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Sarlavha</th>
+                <th>Guruh</th>
+                <th>Deadline</th>
+                {% if user.role == 'STUDENT' %}
+                <th>Status</th>
+                {% else %}
+                <th>Topshirganlar</th>
+                <th>O'rtacha %</th>
+                {% endif %}
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hw in homeworks %}
+            <tr>
+                <td>{{ hw.sequence }}</td>
+                <td>
+                    <a href="{% url 'homework_detail' hw.pk %}" style="color: var(--primary); font-weight: 600;">
+                        {{ hw.title }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'group_detail' hw.group.pk %}" class="text-muted">
+                        {{ hw.group.name }}
+                    </a>
+                </td>
+                <td>
+                    {% if hw.deadline_warning %}
+                    <span style="color: var(--danger); font-weight: 600;">
+                        <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+                        {{ hw.deadline|date:"d.m.Y H:i" }}
+                    </span>
+                    {% else %}
+                    {{ hw.deadline|date:"d.m.Y H:i" }}
+                    {% endif %}
+                </td>
+                {% if user.role == 'STUDENT' %}
+                <td>
+                    {% if hw.is_locked %}
+                    <span class="badge badge-secondary">
+                        <i data-lucide="lock" style="width: 12px; height: 12px;"></i> Qulflangan
+                    </span>
+                    {% elif hw.is_submitted %}
+                    <span class="badge badge-success">
+                        <i data-lucide="check" style="width: 12px; height: 12px;"></i> Topshirilgan
+                    </span>
+                    {% elif hw.is_overdue %}
+                    <span class="badge badge-danger">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i> Muddat o'tgan
+                    </span>
+                    {% else %}
+                    <span class="badge badge-warning">
+                        <i data-lucide="clock" style="width: 12px; height: 12px;"></i> Kutilmoqda
+                    </span>
+                    {% endif %}
+                </td>
+                {% else %}
+                <td>{{ hw.submitted_count|default:0 }}/{{ hw.total_students|default:0 }}</td>
+                <td>
+                    {% if hw.avg_score %}
+                    <span
+                        class="badge {% if hw.avg_score >= 70 %}badge-success{% elif hw.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                        {{ hw.avg_score }}%
+                    </span>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                {% endif %}
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'homework_detail' hw.pk %}" class="btn btn-sm btn-outline">
+                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+                        <a href="{% url 'homework_update' hw.pk %}" class="btn btn-sm btn-secondary">
+                            <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i data-lucide="file-text" style="width: 64px; height: 64px;"></i>
+        <h3>Vazifalar yo'q</h3>
+        <p>Hozircha vazifalar mavjud emas</p>
+        {% if user.role == 'TEACHER' %}
+        <a href="{% url 'homework_create' %}" class="btn btn-primary mt-2">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+            Vazifa yaratish
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

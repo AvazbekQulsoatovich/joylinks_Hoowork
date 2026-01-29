@@ -1,0 +1,183 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="page-subtitle">Xush kelibsiz, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        {% if not is_moderator %}
+        <a href="{% url 'export_all' %}" class="btn btn-success">
+            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+            Excel Yuklash
+        </a>
+        <a href="{% url 'user_create' %}" class="btn btn-primary">
+            <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+            Yangi Foydalanuvchi
+        </a>
+        {% endif %}
+    </div>
+</header>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Jami Talabalar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_teachers }}</div>
+        <div class="stat-label">O'qituvchilar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_courses }}</div>
+        <div class="stat-label">Kurslar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_groups }}</div>
+        <div class="stat-label">Guruhlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ avg_score }}%</div>
+        <div class="stat-label">O'rtacha O'zlashtirish</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Kurslar Statistikasi -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Kurslar bo'yicha statistika</h3>
+            <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline">Barchasi</a>
+        </div>
+        {% if course_stats %}
+        <div class="table-container" style="box-shadow: none;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Kurs</th>
+                        <th>Guruhlar</th>
+                        <th>Talabalar</th>
+                        <th>O'rtacha %</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in course_stats %}
+                    <tr>
+                        <td>
+                            <strong>{{ stat.course.name }}</strong>
+                        </td>
+                        <td>{{ stat.groups }}</td>
+                        <td>{{ stat.students }}</td>
+                        <td>
+                            <span
+                                class="badge {% if stat.avg_score >= 70 %}badge-success{% elif stat.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                                {{ stat.avg_score }}%
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'course_detail' stat.course.pk %}" class="btn btn-sm btn-outline">
+                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i data-lucide="book-open" style="width: 48px; height: 48px;"></i>
+            <h3>Kurslar yo'q</h3>
+            <p>Yangi kurs yaratishni boshlang</p>
+            <a href="{% url 'course_create' %}" class="btn btn-primary mt-2">Kurs yaratish</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tezkor harakatlar -->
+    <div class="card">
+        <h3 class="card-title mb-3">Tezkor harakatlar</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% if not is_moderator %}
+            <a href="{% url 'user_create' %}" class="btn btn-primary" style="width: 100%;">
+                <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+                Yangi foydalanuvchi
+            </a>
+            <a href="{% url 'course_create' %}" class="btn btn-secondary" style="width: 100%;">
+                <i data-lucide="book-plus" style="width: 18px; height: 18px;"></i>
+                Yangi kurs
+            </a>
+            <a href="{% url 'group_create' %}" class="btn btn-secondary" style="width: 100%;">
+                <i data-lucide="users-plus" style="width: 18px; height: 18px;"></i>
+                Yangi guruh
+            </a>
+            {% endif %}
+            <a href="{% url 'export_all' %}" class="btn btn-success" style="width: 100%;">
+                <i data-lucide="file-spreadsheet" style="width: 18px; height: 18px;"></i>
+                Hisobot yuklash (Excel)
+            </a>
+        </div>
+
+        <!-- So'nggi foydalanuvchilar -->
+        <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--gray-700);">So'nggi qo'shilganlar</h4>
+        {% for u in recent_users %}
+        <div class="list-item">
+            <div class="list-item-icon">
+                <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="list-item-content">
+                <div class="list-item-title">{{ u.get_full_name|default:u.username }}</div>
+                <div class="list-item-subtitle">
+                    <span
+                        class="badge badge-{% if u.role == 'ADMIN' %}danger{% elif u.role == 'TEACHER' %}primary{% else %}success{% endif %}">
+                        {{ u.get_role_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">Hozircha yo'q</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- So'nggi topshiriqlar -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">So'nggi topshiriqlar</h3>
+        <a href="{% url 'teacher_submissions' %}" class="btn btn-sm btn-outline">Barchasi</a>
+    </div>
+    {% if recent_submissions %}
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for sub in recent_submissions %}
+        <div class="list-item">
+            <div class="list-item-icon"
+                style="background: {% if sub.is_graded %}var(--secondary-light){% else %}var(--warning-light){% endif %}; color: {% if sub.is_graded %}var(--secondary){% else %}var(--warning){% endif %};">
+                <i data-lucide="{% if sub.is_graded %}check-circle{% else %}clock{% endif %}"
+                    style="width: 20px; height: 20px;"></i>
+            </div>
+            <div class="list-item-content">
+                <div class="list-item-title">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                <div class="list-item-subtitle">{{ sub.homework.title }} • {{ sub.homework.group.name }}</div>
+            </div>
+            <div class="list-item-meta">
+                {% if sub.is_graded %}
+                <span class="badge badge-success">{{ sub.score_percent }}%</span>
+                {% else %}
+                <span class="badge badge-warning">Tekshirilmagan</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">Hozircha topshiriqlar yo'q</p>
+    {% endif %}
+</div>
+{% endblock %}

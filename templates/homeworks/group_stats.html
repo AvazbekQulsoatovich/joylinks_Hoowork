@@ -1,0 +1,80 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Statistika: {{ group.name }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'group_detail' group.pk %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Guruh Tafsilotlari
+        </a>
+        <h1 class="page-title">Guruh statistikasi</h1>
+        <p class="page-subtitle">{{ group.name }} ({{ group.course.name }})</p>
+    </div>
+    <a href="{% url 'export_group' group.pk %}" class="btn btn-success">
+        <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+        Excel Yuklash
+    </a>
+</header>
+
+<div class="stat-card mb-4" style="max-width: 400px;">
+    <div class="stat-value" style="font-size: 3rem;">{{ group_avg }}%</div>
+    <div class="stat-label">Guruh umumiy o'rtacha balli</div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Talabalar o'zlashtirishi</h3>
+    </div>
+    <div class="table-container" style="box-shadow: none;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Talaba</th>
+                    <th>Topshirilgan</th>
+                    <th>O'zlashtirish %</th>
+                    <th style="width: 40%">Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in stats %}
+                <tr>
+                    <td>
+                        <strong>{{ s.student.get_full_name|default:s.student.username }}</strong>
+                    </td>
+                    <td>{{ s.submitted }}/{{ s.total }}</td>
+                    <td>
+                        <span
+                            class="badge {% if s.avg_score >= 80 %}badge-success{% elif s.avg_score >= 60 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {{ s.avg_score }}%
+                        </span>
+                    </td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar"
+                                style="width: {{ s.avg_score|default:0 }}%; background: {% if s.avg_score >= 80 %}var(--secondary){% elif s.avg_score >= 60 %}var(--warning){% else %}var(--danger){% endif %};">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid mt-4" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3 class="card-title mb-3">Vazifalar tahlili</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for hw in homeworks %}
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="text-muted">{{ hw.title|truncatechars:20 }}</span>
+                <span class="badge badge-info">{{ hw.submissions.count }} ta topshirilgan</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

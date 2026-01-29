@@ -1,0 +1,159 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Profil: {{ target_user.username }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'user_list' %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Foydalanuvchilar
+        </a>
+        <h1 class="page-title">{{ target_user.get_full_name|default:target_user.username }}</h1>
+        <p class="page-subtitle">{{ target_user.get_role_display }}</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'change_user_password' target_user.pk %}" class="btn btn-warning">
+            <i data-lucide="key" style="width: 18px; height: 18px;"></i> Parolni o'zgartirish
+        </a>
+        <a href="{% url 'user_update' target_user.pk %}" class="btn btn-secondary">
+            <i data-lucide="edit" style="width: 18px; height: 18px;"></i> Tahrirlash
+        </a>
+    </div>
+</header>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+    <!-- Chap panel: Ma'lumotlar -->
+    <div>
+        <div class="card mb-3">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div
+                    style="width: 100px; height: 100px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i data-lucide="user" style="width: 50px; height: 50px;"></i>
+                </div>
+                <h3 class="font-bold">{{ target_user.username }}</h3>
+                <span class="badge {% if target_user.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                    {% if target_user.is_active %}Faol{% else %}Bloklangan{% endif %}
+                </span>
+            </div>
+
+            <div
+                style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--gray-200); padding-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Email:</span>
+                    <span>{{ target_user.email|default:"-" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Telefon:</span>
+                    <span>{{ target_user.phone|default:"-" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Qo'shilgan:</span>
+                    <span>{{ target_user.date_joining|date:"d.m.Y" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Oxirgi kirish:</span>
+                    <span>{{ target_user.last_login|date:"d.m.Y H:i"|default:"Hali kirmagan" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- O'ng panel: Faoliyat -->
+    <div>
+        {% if target_user.role == 'STUDENT' %}
+        <div class="card mb-3">
+            <h3 class="card-title mb-3">O'quvchi statistikasi</h3>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="stat-card" style="box-shadow: none;">
+                    <div class="stat-value">{{ avg_score }}%</div>
+                    <div class="stat-label">O'rtacha ball</div>
+                </div>
+                <div class="stat-card" style="box-shadow: none;">
+                    <div class="stat-value">{{ submission_count }}</div>
+                    <div class="stat-label">Topshirilgan vazifalar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title mb-3">Guruhlari</h3>
+            {% if groups %}
+            <div class="table-container" style="box-shadow: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Kurs</th>
+                            <th>Guruh</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in groups %}
+                        <tr>
+                            <td>{{ g.course.name }}</td>
+                            <td><strong>{{ g.name }}</strong></td>
+                            <td>
+                                <a href="{% url 'group_detail' g.pk %}" class="btn btn-sm btn-outline">
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">Hali guruhga qo'shilmagan.</p>
+            {% endif %}
+        </div>
+        {% elif target_user.role == 'TEACHER' %}
+        <div class="card mb-3">
+            <h3 class="card-title mb-3">O'qituvchi statistikasi</h3>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="stat-card" style="box-shadow: none;">
+                    <div class="stat-value">{{ groups|length }}</div>
+                    <div class="stat-label">Guruhlar soni</div>
+                </div>
+                <div class="stat-card" style="box-shadow: none;">
+                    <div class="stat-value">{{ homework_count }}</div>
+                    <div class="stat-label">Berilgan vazifalar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title mb-3">Biriktirilgan guruhlar</h3>
+            {% if groups %}
+            <div class="table-container" style="box-shadow: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Kurs</th>
+                            <th>Guruh</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in groups %}
+                        <tr>
+                            <td>{{ g.course.name }}</td>
+                            <td><strong>{{ g.name }}</strong></td>
+                            <td>
+                                <a href="{% url 'group_detail' g.pk %}" class="btn btn-sm btn-outline">
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">Hali guruhga biriktirilmagan.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

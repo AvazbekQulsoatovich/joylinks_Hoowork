@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if object %}Vazifa tahrirlash{% else %}Yangi Vazifa{% endif %} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'homework_list' %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Vazifalar
+        </a>
+        <h1 class="page-title">{% if object %}Vazifa tahrirlash{% else %}Yangi Vazifa Yaratish{% endif %}</h1>
+    </div>
+</header>
+
+<div class="card" style="max-width: 800px;">
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label class="form-label">{{ form.group.label }}</label>
+            {{ form.group }}
+            {% if form.group.errors %}
+            <small style="color: var(--danger);">{{ form.group.errors.0 }}</small>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">{{ form.title.label }}</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+            <small style="color: var(--danger);">{{ form.title.errors.0 }}</small>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">{{ form.description.label }}</label>
+            {{ form.description }}
+            <small class="text-muted">Vazifa tavsifi, o'quvchilar nima qilishlari kerakligini yozing</small>
+            {% if form.description.errors %}
+            <small style="color: var(--danger);">{{ form.description.errors.0 }}</small>
+            {% endif %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label class="form-label">{{ form.deadline.label }}</label>
+                {{ form.deadline }}
+                {% if form.deadline.errors %}
+                <small style="color: var(--danger);">{{ form.deadline.errors.0 }}</small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.sequence.label }}</label>
+                {{ form.sequence }}
+                <small class="text-muted">Vazifalar tartibi (1, 2, 3...)</small>
+                {% if form.sequence.errors %}
+                <small style="color: var(--danger);">{{ form.sequence.errors.0 }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="save" style="width: 18px; height: 18px;"></i>
+                {% if object %}Saqlash{% else %}Yaratish{% endif %}
+            </button>
+            <a href="{% url 'homework_list' %}" class="btn btn-secondary">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

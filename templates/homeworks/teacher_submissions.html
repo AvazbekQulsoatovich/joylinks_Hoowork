@@ -1,0 +1,84 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Barcha topshiriqlar - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Topshiriqlar</h1>
+        <p class="page-subtitle">O'quvchilar tomonidan topshirilgan barcha vazifalar</p>
+    </div>
+</header>
+
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--warning);">{{ pending|length }}</div>
+        <div class="stat-label">Tekshirilmagan</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--secondary);">{{ graded|length }}</div>
+        <div class="stat-label">Baholangan</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ submissions|length }}</div>
+        <div class="stat-label">Jami</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Topshiriqlar ro'yxati</h3>
+    </div>
+
+    {% if submissions %}
+    <div class="table-container" style="box-shadow: none;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>O'quvchi</th>
+                    <th>Vazifa</th>
+                    <th>Guruh</th>
+                    <th>Vaqt</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in submissions %}
+                <tr>
+                    <td>
+                        <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                    </td>
+                    <td>{{ sub.homework.title|truncatechars:30 }}</td>
+                    <td>{{ sub.homework.group.name }}</td>
+                    <td>
+                        <span class="text-muted" style="font-size: 0.875rem;">{{ sub.submitted_at|date:"d.m.Y H:i"
+                            }}</span>
+                    </td>
+                    <td>
+                        {% if sub.is_graded %}
+                        <span class="badge badge-success">{{ sub.score_percent }}%</span>
+                        {% else %}
+                        <span class="badge badge-warning">Tekshirilmagan</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-sm btn-primary">
+                            {% if sub.is_graded %}<i data-lucide="eye" style="width: 14px; height: 14px;"></i> Ko'rish{%
+                            else %}<i data-lucide="check" style="width: 14px; height: 14px;"></i> Baholash{% endif %}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i data-lucide="clipboard" style="width: 64px; height: 64px;"></i>
+        <h3>Topshiriqlar yo'q</h3>
+        <p>Hozircha hech kim vazifa topshirmadi.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

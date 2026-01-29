@@ -1,0 +1,146 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Vazifani topshirish: {{ homework.title }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'homework_detail' homework.pk %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Vazifa tafsilotlari
+        </a>
+        <h1 class="page-title">Vazifani topshirish</h1>
+        <p class="page-subtitle">{{ homework.title }}</p>
+    </div>
+</header>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Form -->
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" id="submission-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Topshirish turi</label>
+                <div class="submission-type-toggle">
+                    <label class="submission-type-option active" id="type-text">
+                        <input type="radio" name="submission_type" value="text" checked>
+                        <strong>Oddiy matn</strong>
+                        <p class="text-muted" style="font-size: 0.75rem;">Yozma javob uchun</p>
+                    </label>
+                    <label class="submission-type-option" id="type-code">
+                        <input type="radio" name="submission_type" value="code">
+                        <strong>Kod (Monospace)</strong>
+                        <p class="text-muted" style="font-size: 0.75rem;">Dasturlash kodlari uchun</p>
+                    </label>
+                </div>
+            </div>
+
+            <div id="language-selection" class="form-group" style="display: none;">
+                <label class="form-label">{{ form.code_language.label }}</label>
+                {{ form.code_language }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" id="content-label">{{ form.content.label }}</label>
+                {{ form.content }}
+                {% if form.content.errors %}<small class="text-danger">{{ form.content.errors.0 }}</small>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.file.label }}</label>
+                {{ form.file }}
+                <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">Zarur bo'lsa arxiv yoki rasm
+                    biriktiring</p>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i data-lucide="send" style="width: 20px; height: 20px;"></i>
+                    Vazifani topshirish
+                </button>
+                <a href="{% url 'homework_detail' homework.pk %}" class="btn btn-lg btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info -->
+    <div>
+        <div class="card mb-3">
+            <h4 class="mb-3">Ma'lumot</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Deadline:</span>
+                    <span class="font-bold text-danger">{{ homework.deadline|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Qolgan vaqt:</span>
+                    <span id="countdown" class="font-bold">--:--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info" style="font-size: 0.875rem;">
+            <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+            Vazifani topshirgandan so'ng tahrirlab bo'lmaydi. Yuborishdan oldin tekshiring.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle UI based on submission type
+    const typeText = document.getElementById('type-text');
+    const typeCode = document.getElementById('type-code');
+    const langSelection = document.getElementById('language-selection');
+    const textarea = document.querySelector('.code-textarea');
+    const contentLabel = document.getElementById('content-label');
+
+    typeText.addEventListener('click', () => {
+        typeText.classList.add('active');
+        typeCode.classList.remove('active');
+        langSelection.style.display = 'none';
+        textarea.style.fontFamily = 'inherit';
+        textarea.style.background = 'var(--white)';
+        textarea.style.color = 'inherit';
+        contentLabel.innerText = "Javobingizni yozing";
+    });
+
+    typeCode.addEventListener('click', () => {
+        typeCode.classList.add('active');
+        typeText.classList.remove('active');
+        langSelection.style.display = 'block';
+        textarea.style.fontFamily = "'Fira Code', 'Monaco', 'Consolas', monospace";
+        textarea.style.background = 'var(--gray-900)';
+        textarea.style.color = '#e2e8f0';
+        contentLabel.innerText = "Kodni yozing";
+    });
+
+    // Countdown logic
+    const deadline = new Date("{{ homework.deadline|date:'Y-m-d H:i:s' }}").getTime();
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = deadline - now;
+
+        if (distance < 0) {
+            document.getElementById("countdown").innerHTML = "Muddat tugadi";
+            document.getElementById("countdown").style.color = "var(--danger)";
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        let text = "";
+        if (days > 0) text += days + "k ";
+        text += hours + ":" + minutes + ":" + seconds;
+
+        document.getElementById("countdown").innerHTML = text;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+</script>
+{% endblock %}

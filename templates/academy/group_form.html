@@ -1,0 +1,49 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if object %}Guruhni tahrirlash{% else %}Yangi Guruh{% endif %} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'group_list' %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Guruhlar
+        </a>
+        <h1 class="page-title">{% if object %}Guruhni tahrirlash{% else %}Yangi Guruh Yaratish{% endif %}</h1>
+    </div>
+</header>
+
+<div class="card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <small class="text-danger">{{ form.name.errors.0 }}</small>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label class="form-label">{{ form.course.label }}</label>
+            {{ form.course }}
+            {% if form.course.errors %}
+            <small class="text-danger">{{ form.course.errors.0 }}</small>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label class="form-label">{{ form.teacher.label }}</label>
+            {{ form.teacher }}
+            <small class="text-muted">Bu o'qituvchi guruhga biriktiriladi</small>
+            {% if form.teacher.errors %}
+            <small class="text-danger">{{ form.teacher.errors.0 }}</small>
+            {% endif %}
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="save" style="width: 18px; height: 18px;"></i> Saqlash
+            </button>
+            <a href="{% url 'group_list' %}" class="btn btn-secondary">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

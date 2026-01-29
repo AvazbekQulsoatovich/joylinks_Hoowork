@@ -1,0 +1,242 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ homework.title }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'homework_list' %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Vazifalar
+        </a>
+        <h1 class="page-title">{{ homework.title }}</h1>
+        <p class="page-subtitle">{{ homework.group.name }} • {{ homework.group.course.name }}</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        {% if user.role == 'STUDENT' and can_submit and not submission %}
+        <a href="{% url 'submission_create' homework.pk %}" class="btn btn-primary">
+            <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+            Topshirish
+        </a>
+        {% endif %}
+        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+        <a href="{% url 'homework_update' homework.pk %}" class="btn btn-secondary">
+            <i data-lucide="edit" style="width: 18px; height: 18px;"></i>
+            Tahrirlash
+        </a>
+        <a href="{% url 'homework_delete' homework.pk %}" class="btn btn-danger">
+            <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+            O'chirish
+        </a>
+        {% endif %}
+    </div>
+</header>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Vazifa tafsilotlari -->
+    <div>
+        <div class="card mb-3">
+            <h3 class="card-title mb-3">Vazifa tavsifi</h3>
+            <div style="white-space: pre-wrap; line-height: 1.8;">{{ homework.description }}</div>
+        </div>
+
+        {% if user.role == 'STUDENT' %}
+        <!-- O'quvchi uchun: o'z topshirig'i -->
+        {% if submission %}
+        <div class="card">
+            <h3 class="card-title mb-3">Mening javobim</h3>
+
+            {% if submission.is_code %}
+            <div class="code-block">
+                <div class="code-block-header">
+                    <span class="code-block-lang">{{ submission.code_language }}</span>
+                    <button class="code-block-copy">
+                        <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Nusxalash
+                    </button>
+                </div>
+                <pre><code>{{ submission.content }}</code></pre>
+            </div>
+            {% else %}
+            <div
+                style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius); white-space: pre-wrap;">
+                {{ submission.content }}
+            </div>
+            {% endif %}
+
+            {% if submission.file %}
+            <div class="mt-2">
+                <a href="{{ submission.file.url }}" class="btn btn-sm btn-outline" target="_blank">
+                    <i data-lucide="paperclip" style="width: 14px; height: 14px;"></i>
+                    Fayl: {{ submission.file.name }}
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="mt-3" style="border-top: 1px solid var(--gray-200); padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="text-muted">Topshirilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+                    {% if submission.is_graded %}
+                    <span
+                        class="badge {% if submission.score_percent >= 70 %}badge-success{% elif submission.score_percent >= 50 %}badge-warning{% else %}badge-danger{% endif %}"
+                        style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        {{ submission.score_percent }}%
+                    </span>
+                    {% else %}
+                    <span class="badge badge-info">Tekshirilmoqda...</span>
+                    {% endif %}
+                </div>
+
+                {% if submission.teacher_comment %}
+                <div class="mt-2" style="background: var(--info-light); padding: 1rem; border-radius: var(--radius);">
+                    <strong>O'qituvchi izohi:</strong><br>
+                    {{ submission.teacher_comment }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% elif not can_submit %}
+        <div class="alert alert-danger">
+            <i data-lucide="alert-circle" style="width: 20px; height: 20px;"></i>
+            Topshirish muddati tugagan. Bu vazifani topshirib bo'lmaydi.
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+        <!-- O'qituvchi uchun: barcha topshiriqlar -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Topshiriqlar</h3>
+                <span class="badge badge-primary">{{ submissions|length }}/{{ all_students|length }}</span>
+            </div>
+
+            {% if submissions %}
+            <div class="table-container" style="box-shadow: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>O'quvchi</th>
+                            <th>Vaqt</th>
+                            <th>Tur</th>
+                            <th>Ball</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in submissions %}
+                        <tr>
+                            <td>
+                                <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                                {% if sub.is_late %}
+                                <span class="badge badge-danger" style="font-size: 0.65rem;">KECH</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ sub.submitted_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                {% if sub.is_code %}
+                                <span class="badge badge-info">Kod</span>
+                                {% else %}
+                                <span class="badge badge-secondary">Matn</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sub.is_graded %}
+                                <span
+                                    class="badge {% if sub.score_percent >= 70 %}badge-success{% elif sub.score_percent >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ sub.score_percent }}%
+                                </span>
+                                {% else %}
+                                <span class="badge badge-warning">Kutilmoqda</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'grade_submission' sub.pk %}"
+                                    class="btn btn-sm {% if sub.is_graded %}btn-outline{% else %}btn-primary{% endif %}">
+                                    {% if sub.is_graded %}
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i> Ko'rish
+                                    {% else %}
+                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i> Baholash
+                                    {% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if not_submitted %}
+            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--gray-600);">Topshirmaganlar ({{
+                not_submitted|length }})</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for student in not_submitted %}
+                <span class="badge badge-danger">{{ student.get_full_name|default:student.username }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- O'ng panel -->
+    <div>
+        <div class="card mb-3">
+            <h4 style="color: var(--gray-600); margin-bottom: 1rem;">Ma'lumotlar</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Guruh:</span>
+                    <a href="{% url 'group_detail' homework.group.pk %}"
+                        style="color: var(--primary); font-weight: 500;">{{ homework.group.name }}</a>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Kurs:</span>
+                    <span>{{ homework.group.course.name }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Deadline:</span>
+                    <span
+                        style="font-weight: 600; {% if not can_submit and user.role == 'STUDENT' %}color: var(--danger);{% endif %}">
+                        {{ homework.deadline|date:"d.m.Y H:i" }}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Yaratilgan:</span>
+                    <span>{{ homework.created_at|date:"d.m.Y" }}</span>
+                </div>
+                {% if homework.created_by %}
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Muallif:</span>
+                    <span>{{ homework.created_by.get_full_name|default:homework.created_by.username }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+        <div class="card mb-3">
+            <h4 style="color: var(--gray-600); margin-bottom: 1rem;">Statistika</h4>
+            <div class="stat-card" style="box-shadow: none; padding: 1rem;">
+                <div class="stat-value" style="font-size: 2rem;">{{ avg_score|floatformat:1 }}%</div>
+                <div class="stat-label">O'rtacha ball</div>
+            </div>
+            <div class="progress mt-2">
+                <div class="progress-bar" style="width: {{ avg_score }}%;"></div>
+            </div>
+        </div>
+
+        <a href="{% url 'export_group' homework.group.pk %}" class="btn btn-success" style="width: 100%;">
+            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+            Excel yuklash
+        </a>
+        {% endif %}
+
+        {% if user.role == 'STUDENT' and can_submit and not submission %}
+        <a href="{% url 'submission_create' homework.pk %}" class="btn btn-primary btn-lg" style="width: 100%;">
+            <i data-lucide="send" style="width: 20px; height: 20px;"></i>
+            Vazifani topshirish
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

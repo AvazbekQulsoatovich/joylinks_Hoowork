@@ -1,0 +1,141 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Foydalanuvchilar - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Foydalanuvchilar</h1>
+        <p class="page-subtitle">Tizim foydalanuvchilari boshqaruvi</p>
+    </div>
+    <a href="{% url 'user_create' %}" class="btn btn-primary">
+        <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+        Yangi Foydalanuvchi
+    </a>
+</header>
+
+<!-- Stats Grid -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-value">{{ admin_count }}</div>
+        <div class="stat-label">Adminlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ teacher_count }}</div>
+        <div class="stat-label">O'qituvchilar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ student_count }}</div>
+        <div class="stat-label">O'quvchilar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--danger);">{{ blocked_count }}</div>
+        <div class="stat-label">Bloklanganlar</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <form method="get" class="filters">
+        <div class="filter-group">
+            <input type="text" name="search" value="{{ current_search }}" class="form-control"
+                placeholder="Qidirish (ism, login)..." style="width: 300px;">
+        </div>
+        <div class="filter-group">
+            <select name="role" class="form-control">
+                <option value="">Barcha rollar</option>
+                {% for code, label in roles %}
+                <option value="{{ code }}" {% if current_role==code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <select name="status" class="form-control">
+                <option value="">Barcha statuslar</option>
+                <option value="active" {% if current_status=='active' %}selected{% endif %}>Faol</option>
+                <option value="blocked" {% if current_status=='blocked' %}selected{% endif %}>Bloklangan</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <button type="submit" class="btn btn-primary">Saralash</button>
+            <a href="{% url 'user_list' %}" class="btn btn-secondary">Tozalash</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Foydalanuvchi</th>
+                <th>Rol</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="list-item-icon" style="width: 32px; height: 32px;">
+                            <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+                        </div>
+                        <div>
+                            <strong>{{ u.get_full_name|default:u.username }}</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">{{ u.email|default:"Email yo'q" }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span
+                        class="badge {% if u.role == 'ADMIN' %}badge-danger{% elif u.role == 'TEACHER' %}badge-primary{% else %}badge-success{% endif %}">
+                        {{ u.get_role_display }}
+                    </span>
+                </td>
+                <td>@{{ u.username }}</td>
+                <td>
+                    {% if u.is_active %}
+                    <span class="badge badge-success">Faol</span>
+                    {% else %}
+                    <span class="badge badge-danger">Bloklangan</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <a href="{% url 'user_detail' u.pk %}" class="btn btn-sm btn-outline" title="Profil">
+                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        <a href="{% url 'user_update' u.pk %}" class="btn btn-sm btn-secondary" title="Tahrirlash">
+                            <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        <a href="{% url 'change_user_password' u.pk %}" class="btn btn-sm btn-warning"
+                            title="Parolni o'zgartirish">
+                            <i data-lucide="key" style="width: 14px; height: 14px;"></i>
+                        </a>
+                        <form action="{% url 'toggle_user_status' u.pk %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="btn btn-sm btn-outline {% if u.is_active %}text-danger{% else %}text-success{% endif %}"
+                                title="{% if u.is_active %}Bloklash{% else %}Faollashtirish{% endif %}">
+                                <i data-lucide="{% if u.is_active %}shield-off{% else %}shield-check{% endif %}"
+                                    style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not users %}
+<div class="empty-state">
+    <i data-lucide="users" style="width: 64px; height: 64px;"></i>
+    <h3>Foydalanuvchilar topilmadi</h3>
+    <p>Qidiruv shartlarini o'zgartirib ko'ring yoki yangi foydalanuvchi qo'shing.</p>
+</div>
+{% endif %}
+{% endblock %}

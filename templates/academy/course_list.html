@@ -1,0 +1,71 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Kurslar - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Kurslar</h1>
+        <p class="page-subtitle">Akademiyadagi barcha kurslar</p>
+    </div>
+    {% if user.role == 'ADMIN' %}
+    <a href="{% url 'course_create' %}" class="btn btn-primary">
+        <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+        Yangi Kurs
+    </a>
+    {% endif %}
+</header>
+
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+    {% for course in courses %}
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div
+                style="width: 48px; height: 48px; background: var(--primary-light); color: var(--primary); border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="book" style="width: 24px; height: 24px;"></i>
+            </div>
+            {% if user.role == 'ADMIN' %}
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'course_update' course.pk %}" class="btn btn-sm btn-outline" title="Tahrirlash">
+                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                </a>
+                <a href="{% url 'course_delete' course.pk %}" class="btn btn-sm btn-outline"
+                    style="color: var(--danger);" title="O'chirish">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <h3 class="card-title">{{ course.name }}</h3>
+        <p class="text-muted mb-3" style="font-size: 0.875rem; min-height: 3rem;">{{ course.description|truncatewords:20
+            }}</p>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <span class="font-bold" style="display: block;">{{ course.groups.count }}</span>
+                <span class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Guruhlar</span>
+            </div>
+            <div style="border-left: 1px solid var(--gray-200); padding-left: 1rem;">
+                <span class="font-bold" style="display: block;">{{ course.student_count }}</span>
+                <span class="text-muted" style="font-size: 0.75rem; text-transform: uppercase;">Talabalar</span>
+            </div>
+        </div>
+
+        <a href="{% url 'course_detail' course.pk %}" class="btn btn-primary" style="width: 100%;">
+            Batafsil ko'rish
+        </a>
+    </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="empty-state">
+            <i data-lucide="book-open" style="width: 64px; height: 64px;"></i>
+            <h3>Kurslar mavjud emas</h3>
+            {% if user.role == 'ADMIN' %}
+            <p>Yangi kurs yaratish tugmasini bosing</p>
+            <a href="{% url 'course_create' %}" class="btn btn-primary mt-2">Yaratish</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

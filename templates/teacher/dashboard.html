@@ -1,0 +1,137 @@
+{% extends 'base/base.html' %}
+
+{% block title %}O'qituvchi Dashboard - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">O'qituvchi Dashboard</h1>
+        <p class="page-subtitle">Xush kelibsiz, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'homework_create' %}" class="btn btn-primary">
+            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+            Yangi Vazifa
+        </a>
+    </div>
+</header>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ groups|length }}</div>
+        <div class="stat-label">Guruhlarim</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Jami Talabalar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_homeworks }}</div>
+        <div class="stat-label">Berilgan Vazifalar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: var(--warning);">{{ pending_count }}</div>
+        <div class="stat-label">Tekshirilmagan</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <!-- Guruhlarim -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Guruhlarim</h3>
+            <a href="{% url 'group_list' %}" class="btn btn-sm btn-outline">Barchasi</a>
+        </div>
+        {% if group_stats %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for stat in group_stats %}
+            <div class="list-item" style="cursor: pointer;"
+                onclick="location.href='{% url 'group_detail' stat.group.pk %}'">
+                <div class="list-item-icon">
+                    <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-title">{{ stat.group.name }}</div>
+                    <div class="list-item-subtitle">
+                        {{ stat.group.course.name }} • {{ stat.students }} talaba
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div
+                        class="badge {% if stat.avg_score >= 70 %}badge-success{% elif stat.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                        {{ stat.avg_score }}%
+                    </div>
+                    {% if stat.pending > 0 %}
+                    <div class="badge badge-warning mt-1">{{ stat.pending }} tekshirilmagan</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i data-lucide="users" style="width: 48px; height: 48px;"></i>
+            <h3>Guruhlar yo'q</h3>
+            <p>Admin sizni guruhga biriktirishi kerak</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tekshirilmagan topshiriqlar -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Tekshirilmagan topshiriqlar</h3>
+            <a href="{% url 'teacher_submissions' %}" class="btn btn-sm btn-outline">Barchasi</a>
+        </div>
+        {% if pending_submissions %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for sub in pending_submissions %}
+            <div class="list-item" style="cursor: pointer;"
+                onclick="location.href='{% url 'grade_submission' sub.pk %}'">
+                <div class="list-item-icon" style="background: var(--warning-light); color: var(--warning);">
+                    <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-title">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                    <div class="list-item-subtitle">
+                        {{ sub.homework.title }}
+                    </div>
+                </div>
+                <div class="list-item-meta">
+                    {{ sub.submitted_at|timesince }} oldin
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i data-lucide="check-circle" style="width: 48px; height: 48px; color: var(--secondary);"></i>
+            <h3>Hammasi tekshirilgan! 🎉</h3>
+            <p>Tekshirilmagan topshiriq yo'q</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tezkor harakatlar -->
+<div class="card mt-3">
+    <h3 class="card-title mb-3">Tezkor harakatlar</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'homework_create' %}" class="btn btn-primary">
+            <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+            Yangi vazifa yaratish
+        </a>
+        <a href="{% url 'teacher_submissions' %}" class="btn btn-secondary">
+            <i data-lucide="clipboard-list" style="width: 18px; height: 18px;"></i>
+            Barcha topshiriqlar
+        </a>
+        {% for stat in group_stats|slice:":3" %}
+        <a href="{% url 'group_stats' stat.group.pk %}" class="btn btn-outline">
+            <i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i>
+            {{ stat.group.name }} statistikasi
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

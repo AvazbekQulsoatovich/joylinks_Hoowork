@@ -1,0 +1,226 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ group.name }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'group_list' %}" class="text-muted"
+            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Guruhlar
+        </a>
+        <h1 class="page-title">{{ group.name }}</h1>
+        <p class="page-subtitle">{{ group.course.name }} kursi</p>
+    </div>
+    {% if user.role == 'ADMIN' %}
+    <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'group_update' group.pk %}" class="btn btn-secondary">
+            <i data-lucide="edit" style="width: 18px; height: 18px;"></i> Tahrirlash
+        </a>
+        <a href="{% url 'add_students_to_group' group.pk %}" class="btn btn-primary">
+            <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i> Talaba Qo'shish
+        </a>
+    </div>
+    {% endif %}
+</header>
+
+<div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 1.5rem;">
+    <!-- Talabalar va Vazifalar -->
+    <div>
+        <!-- Talabalar jadvali -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Talabalar ro'yxati</h3>
+                <span class="badge badge-info">{{ students|length }} talaba</span>
+            </div>
+            {% if students %}
+            <div class="table-container" style="box-shadow: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>F.I.Sh</th>
+                            <th>Username</th>
+                            {% if user.role != 'STUDENT' %}
+                            <th>O'rtacha %</th>
+                            <th>Topshirgan</th>
+                            {% endif %}
+                            {% if user.role == 'ADMIN' %}
+                            <th></th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if student_stats %}
+                        {% for s in student_stats %}
+                        <tr>
+                            <td><strong>{{ s.student.get_full_name|default:s.student.username }}</strong></td>
+                            <td class="text-muted">{{ s.student.username }}</td>
+                            <td>
+                                <span
+                                    class="badge {% if s.avg_score >= 80 %}badge-success{% elif s.avg_score >= 60 %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ s.avg_score }}%
+                                </span>
+                            </td>
+                            <td>{{ s.submitted }}/{{ s.total }}</td>
+                            {% if user.role == 'ADMIN' %}
+                            <td>
+                                <form action="{% url 'remove_student_from_group' group.pk s.student.pk %}" method="post"
+                                    onsubmit="return confirm('Talabani guruhdan chiqarishni tasdiqlaysizmi?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline" style="color: var(--danger);">
+                                        <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        {% for s in students %}
+                        <tr>
+                            <td><strong>{{ s.get_full_name|default:s.username }}</strong></td>
+                            <td class="text-muted">{{ s.username }}</td>
+                            {% if user.role == 'ADMIN' %}
+                            <td>
+                                <form action="{% url 'remove_student_from_group' group.pk s.pk %}" method="post"
+                                    onsubmit="return confirm('Talabani guruhdan chiqarishni tasdiqlaysizmi?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline" style="color: var(--danger);">
+                                        <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Ushbu guruhda hali talabalar yo'q.</p>
+                {% if user.role == 'ADMIN' %}
+                <a href="{% url 'add_students_to_group' group.pk %}" class="btn btn-sm btn-primary mt-2">Talaba
+                    qo'shish</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Vazifalar -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Vazifalar</h3>
+                {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+                <a href="{% url 'homework_create' %}?group={{ group.pk }}" class="btn btn-sm btn-primary">
+                    <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Yangi vazifa
+                </a>
+                {% endif %}
+            </div>
+            {% if homeworks %}
+            <div class="table-container" style="box-shadow: none;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Sarlavha</th>
+                            <th>Deadline</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hw in homeworks %}
+                        <tr>
+                            <td>{{ hw.sequence }}</td>
+                            <td><strong>{{ hw.title }}</strong></td>
+                            <td class="text-muted">{{ hw.deadline|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'homework_detail' hw.pk %}" class="btn btn-sm btn-outline">
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">Bu guruhga hali vazifalar berilmagan.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- O'ng panel -->
+    <div>
+        <div class="card mb-3">
+            <h3 class="card-title mb-3">O'qituvchilar</h3>
+            {% for teacher in teachers %}
+            <div class="list-item">
+                <div class="list-item-icon">
+                    <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-title">{{ teacher.get_full_name|default:teacher.username }}</div>
+                    <div class="list-item-subtitle">{{ teacher.email }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">O'qituvchi biriktirilmagan.</p>
+            {% endfor %}
+
+            {% if user.role == 'ADMIN' %}
+            <button class="btn btn-sm btn-outline mt-2" style="width: 100%;"
+                onclick="document.getElementById('change-teacher-modal').style.display='block'">
+                Almashtirish
+            </button>
+            {% endif %}
+        </div>
+
+        {% if user.role != 'STUDENT' %}
+        <div class="card mb-3">
+            <h3 class="card-title mb-3">Guruh statistikasi</h3>
+            <div class="stat-card" style="box-shadow: none; padding: 1rem;">
+                <div class="stat-value" style="font-size: 2.5rem;">{{ group_avg|default:0 }}%</div>
+                <div class="stat-label">O'rtacha ball</div>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <a href="{% url 'group_stats' group.pk %}" class="btn btn-outline" style="width: 100%;">
+                <i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i> Batafsil Statistika
+            </a>
+            <a href="{% url 'export_group' group.pk %}" class="btn btn-success" style="width: 100%;">
+                <i data-lucide="download" style="width: 18px; height: 18px;"></i> Excel Yuklash
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Change Teacher Partial Hidden (Logic simplified) -->
+<div id="change-teacher-modal"
+    style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+    <div class="card" style="max-width:400px; margin: 100px auto; padding: 2rem;">
+        <h3 class="mb-3">O'qituvchini almashtirish</h3>
+        <form action="{% url 'change_group_teacher' group.pk %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Yangi o'qituvchi</label>
+                <select name="teacher_id" class="form-control" required>
+                    <option value="">Tanlang...</option>
+                    {% for t in all_teachers %}
+                    <option value="{{ t.pk }}">{{ t.get_full_name|default:t.username }}</option>
+                    {% endfor %}
+                </select>
+
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary">Saqlash</button>
+                <button type="button" class="btn btn-secondary"
+                    onclick="document.getElementById('change-teacher-modal').style.display='none'">Bekor qilish</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Vazifa qulflangan - HooWork{% endblock %}
+
+{% block content %}
+<div class="empty-state" style="max-width: 600px; margin: 4rem auto;">
+    <div
+        style="width: 80px; height: 80px; background: var(--gray-100); color: var(--gray-400); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+        <i data-lucide="lock" style="width: 40px; height: 40px;"></i>
+    </div>
+    <h2 class="mb-2">Vazifa qulflangan</h2>
+    <p class="mb-4">Siz ushbu vazifani ko'rish uchun avvalgi vazifalaringizni topshirishingiz va ular tekshirilgan
+        bo'lishi kerak.</p>
+
+    <div class="card text-left" style="background: var(--warning-light); border: 1px solid var(--accent-light);">
+        <h4 class="mb-2" style="color: var(--accent);">Qulfdan chiqarish uchun:</h4>
+        <ul style="padding-left: 1.5rem; color: var(--gray-700);">
+            <li>Barcha avvalgi vazifalarni topshiring</li>
+            <li>Vazifalar o'qituvchi tomonidan baholanishi kerak</li>
+            <li>Ball 0% bo'lmasligi lozim (deadline o'tgan holatlar bundan mustasno)</li>
+        </ul>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'homework_list' %}" class="btn btn-primary">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+            Vazifalar ro'yxatiga qaytish
+        </a>
+    </div>
+</div>
+{% endblock %}
