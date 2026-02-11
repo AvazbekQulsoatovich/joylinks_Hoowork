@@ -9,9 +9,15 @@ db.sqlite3-journal
 media/
 staticfiles/
 
+# Environment variables (SENSITIVE)
+.env
+.env.local
+.env.*.local
+
 # System
 .DS_Store
 .vscode/
 .idea/
 venv/
 env/
+.venv

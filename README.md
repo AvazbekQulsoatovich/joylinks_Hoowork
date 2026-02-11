@@ -48,13 +48,19 @@ Loyihani ishga tushirish uchun quyidagi qadamlarni bajaring:
    python manage.py runserver
    ```
 
-## 🔑 Login Ma'lumotlari (Test Data)
+## 🔑 Konfiguratsiya
 
-| Rol | Username | Parol |
-|---|---|---|
-| **Admin** | `admin` | `admin123` |
-| **O'qituvchi** | `teacher` | `teacher123` |
-| **Talaba** | `student` | `student123` |
+`.env` faylni yaratib quyidagi o'zgaruvchilarni qo'shish kerak:
+```
+DJANGO_SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+**Ishga tushurishning oldida admin foydalanuvchini yaratish:**
+```bash
+python manage.py createsuperuser
+```
 
 ## 📱 Texnologiyalar
 
