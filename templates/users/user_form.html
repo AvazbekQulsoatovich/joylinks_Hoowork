@@ -1,7 +1,8 @@
 {% extends 'base/base.html' %}
 
-{% block title %}{% if object %}Foydalanuvchini tahrirlash{% else %}Yangi Foydalanuvchi{% endif %} - HooWork{% endblock
-%}
+{% block title %}
+{% if object %}Foydalanuvchini tahrirlash{% else %}Yangi Foydalanuvchi{% endif %} - HooWork
+{% endblock %}
 
 {% block content %}
 <header class="page-header">
@@ -10,8 +11,9 @@
             style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
             <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Foydalanuvchilar
         </a>
-        <h1 class="page-title">{% if object %}Foydalanuvchini tahrirlash{% else %}Yangi Foydalanuvchi Yaratish{% endif
-            %}</h1>
+        <h1 class="page-title">
+            {% if object %}Foydalanuvchini tahrirlash{% else %}Yangi Foydalanuvchi Yaratish{% endif %}
+        </h1>
     </div>
 </header>
 

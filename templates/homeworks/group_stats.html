@@ -53,7 +53,7 @@
                     <td>
                         <div class="progress">
                             <div class="progress-bar"
-                                style="width: {{ s.avg_score|default:0 }}%; background: {% if s.avg_score >= 80 %}var(--secondary){% elif s.avg_score >= 60 %}var(--warning){% else %}var(--danger){% endif %};">
+                                style="width:{{ s.avg_score|default:0 }}%; background:{% if s.avg_score >= 80 %}var(--secondary){% elif s.avg_score >= 60 %}var(--warning){% else %}var(--danger){% endif %};">
                             </div>
                         </div>
                     </td>

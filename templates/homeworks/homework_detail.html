@@ -3,100 +3,119 @@
 {% block title %}{{ homework.title }} - HooWork{% endblock %}
 
 {% block content %}
-<header class="page-header">
-    <div>
-        <a href="{% url 'homework_list' %}" class="text-muted"
-            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Vazifalar
+<header class="page-header sticky-header">
+    <div class="header-content">
+        <a href="{% url 'homework_list' %}" class="back-link">
+            <i data-lucide="arrow-left"></i> Vazifalar
         </a>
         <h1 class="page-title">{{ homework.title }}</h1>
-        <p class="page-subtitle">{{ homework.group.name }} • {{ homework.group.course.name }}</p>
+        <div class="meta-tags">
+            <span class="meta-tag"><i data-lucide="users"></i> {{ homework.group.name }}</span>
+            <span class="meta-tag"><i data-lucide="book-open"></i> {{ homework.group.course.name }}</span>
+            <span class="meta-tag {% if not can_submit %}expired{% endif %}">
+                <i data-lucide="clock"></i> {{ homework.deadline|date:"d M, H:i" }}
+            </span>
+        </div>
     </div>
-    <div style="display: flex; gap: 1rem;">
+    <div class="header-actions">
         {% if user.role == 'STUDENT' and can_submit and not submission %}
-        <a href="{% url 'submission_create' homework.pk %}" class="btn btn-primary">
-            <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+        <a href="{% url 'submission_create' homework.pk %}" class="btn btn-primary btn-glow">
+            <i data-lucide="send"></i>
             Topshirish
         </a>
         {% endif %}
         {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
         <a href="{% url 'homework_update' homework.pk %}" class="btn btn-secondary">
-            <i data-lucide="edit" style="width: 18px; height: 18px;"></i>
+            <i data-lucide="edit"></i>
             Tahrirlash
         </a>
         <a href="{% url 'homework_delete' homework.pk %}" class="btn btn-danger">
-            <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
-            O'chirish
+            <i data-lucide="trash-2"></i>
         </a>
         {% endif %}
     </div>
 </header>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-    <!-- Vazifa tafsilotlari -->
-    <div>
-        <div class="card mb-3">
+<div class="homework-layout">
+    <!-- Chap Panel (Asosiy) -->
+    <div class="main-column">
+        <div class="card glass-card mb-4">
             <h3 class="card-title mb-3">Vazifa tavsifi</h3>
-            <div style="white-space: pre-wrap; line-height: 1.8;">{{ homework.description }}</div>
-        </div>
+            <div class="description-content">{{ homework.description }}</div>
 
-        {% if user.role == 'STUDENT' %}
-        <!-- O'quvchi uchun: o'z topshirig'i -->
-        {% if submission %}
-        <div class="card">
-            <h3 class="card-title mb-3">Mening javobim</h3>
-
-            {% if submission.is_code %}
-            <div class="code-block">
-                <div class="code-block-header">
-                    <span class="code-block-lang">{{ submission.code_language }}</span>
-                    <button class="code-block-copy">
-                        <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Nusxalash
-                    </button>
-                </div>
-                <pre><code>{{ submission.content }}</code></pre>
-            </div>
-            {% else %}
-            <div
-                style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius); white-space: pre-wrap;">
-                {{ submission.content }}
-            </div>
-            {% endif %}
-
-            {% if submission.file %}
-            <div class="mt-2">
-                <a href="{{ submission.file.url }}" class="btn btn-sm btn-outline" target="_blank">
-                    <i data-lucide="paperclip" style="width: 14px; height: 14px;"></i>
-                    Fayl: {{ submission.file.name }}
+            {% if homework.file %}
+            <div class="attachment-box">
+                <h4 class="attachment-title">Biriktirilgan fayl:</h4>
+                <a href="{{ homework.file.url }}" class="file-link" target="_blank">
+                    <div class="file-icon">
+                        <i data-lucide="file"></i>
+                    </div>
+                    <div class="file-info">
+                        <span class="file-name">{{ homework.file.name|cut:'homework_files/' }}</span>
+                        <span class="file-action">Yuklab olish <i data-lucide="download"></i></span>
+                    </div>
                 </a>
             </div>
             {% endif %}
+        </div>
 
-            <div class="mt-3" style="border-top: 1px solid var(--gray-200); padding-top: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="text-muted">Topshirilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
-                    {% if submission.is_graded %}
-                    <span
-                        class="badge {% if submission.score_percent >= 70 %}badge-success{% elif submission.score_percent >= 50 %}badge-warning{% else %}badge-danger{% endif %}"
-                        style="font-size: 1rem; padding: 0.5rem 1rem;">
-                        {{ submission.score_percent }}%
-                    </span>
-                    {% else %}
-                    <span class="badge badge-info">Tekshirilmoqda...</span>
-                    {% endif %}
+        {% if user.role == 'STUDENT' %}
+        <!-- O'quvchi javobi -->
+        {% if submission %}
+        <div class="card glass-card">
+            <div class="card-header border-0 pb-0">
+                <h3 class="card-title">Mening javobim</h3>
+                {% if submission.is_graded %}
+                <span
+                    class="grade-badge {% if submission.score_percent >= 70 %}success{% elif submission.score_percent >= 50 %}warning{% else %}danger{% endif %}">
+                    {{ submission.score_percent }}% ball
+                </span>
+                {% else %}
+                <span class="status-badge info">Tekshirilmoqda</span>
+                {% endif %}
+            </div>
+
+            <div class="submission-content mt-3">
+                {% if submission.is_code %}
+                <div class="code-block">
+                    <div class="code-block-header">
+                        <span class="code-block-lang">{{ submission.code_language }}</span>
+                        <button class="code-block-copy">
+                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Nusxalash
+                        </button>
+                    </div>
+                    <pre><code>{{ submission.content }}</code></pre>
                 </div>
+                {% else %}
+                <div class="text-submission">
+                    {{ submission.content }}
+                </div>
+                {% endif %}
+
+                {% if submission.file %}
+                <div class="mt-3">
+                    <a href="{{ submission.file.url }}" class="file-link small" target="_blank">
+                        <i data-lucide="paperclip"></i>
+                        Fayl: {{ submission.file.name }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="submission-footer">
+                <span class="text-muted text-sm">Topshirilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
 
                 {% if submission.teacher_comment %}
-                <div class="mt-2" style="background: var(--info-light); padding: 1rem; border-radius: var(--radius);">
-                    <strong>O'qituvchi izohi:</strong><br>
-                    {{ submission.teacher_comment }}
+                <div class="teacher-feedback">
+                    <strong>O'qituvchi izohi:</strong>
+                    <p>{{ submission.teacher_comment }}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
         {% elif not can_submit %}
-        <div class="alert alert-danger">
-            <i data-lucide="alert-circle" style="width: 20px; height: 20px;"></i>
+        <div class="alert alert-danger glass">
+            <i data-lucide="alert-circle"></i>
             Topshirish muddati tugagan. Bu vazifani topshirib bo'lmaydi.
         </div>
         {% endif %}
@@ -104,14 +123,14 @@
 
         {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
         <!-- O'qituvchi uchun: barcha topshiriqlar -->
-        <div class="card">
+        <div class="card glass-card">
             <div class="card-header">
                 <h3 class="card-title">Topshiriqlar</h3>
                 <span class="badge badge-primary">{{ submissions|length }}/{{ all_students|length }}</span>
             </div>
 
             {% if submissions %}
-            <div class="table-container" style="box-shadow: none;">
+            <div class="table-container clean-table">
                 <table class="table">
                     <thead>
                         <tr>
@@ -126,12 +145,17 @@
                         {% for sub in submissions %}
                         <tr>
                             <td>
-                                <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
-                                {% if sub.is_late %}
-                                <span class="badge badge-danger" style="font-size: 0.65rem;">KECH</span>
-                                {% endif %}
+                                <div class="student-info">
+                                    <div class="avatar-sm">{{ sub.student.first_name|slice:":1" }}</div>
+                                    <div>
+                                        <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                                        {% if sub.is_late %}
+                                        <span class="badge badge-danger xs">KECH</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </td>
-                            <td>{{ sub.submitted_at|date:"d.m.Y H:i" }}</td>
+                            <td class="text-muted text-sm">{{ sub.submitted_at|date:"d.m, H:i" }}</td>
                             <td>
                                 {% if sub.is_code %}
                                 <span class="badge badge-info">Kod</span>
@@ -142,20 +166,19 @@
                             <td>
                                 {% if sub.is_graded %}
                                 <span
-                                    class="badge {% if sub.score_percent >= 70 %}badge-success{% elif sub.score_percent >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
-                                    {{ sub.score_percent }}%
-                                </span>
+                                    class="status-dot {% if sub.score_percent >= 70 %}success{% elif sub.score_percent >= 50 %}warning{% else %}danger{% endif %}"></span>
+                                <span style="font-weight: 600;">{{ sub.score_percent }}%</span>
                                 {% else %}
-                                <span class="badge badge-warning">Kutilmoqda</span>
+                                <span class="status-dot warning"></span> Kutilmoqda
                                 {% endif %}
                             </td>
                             <td>
                                 <a href="{% url 'grade_submission' sub.pk %}"
-                                    class="btn btn-sm {% if sub.is_graded %}btn-outline{% else %}btn-primary{% endif %}">
+                                    class="btn-icon {% if sub.is_graded %}secondary{% else %}primary{% endif %}">
                                     {% if sub.is_graded %}
-                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i> Ko'rish
+                                    <i data-lucide="eye"></i>
                                     {% else %}
-                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i> Baholash
+                                    <i data-lucide="check-square"></i>
                                     {% endif %}
                                 </a>
                             </td>
@@ -167,76 +190,486 @@
             {% endif %}
 
             {% if not_submitted %}
-            <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--gray-600);">Topshirmaganlar ({{
-                not_submitted|length }})</h4>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                {% for student in not_submitted %}
-                <span class="badge badge-danger">{{ student.get_full_name|default:student.username }}</span>
-                {% endfor %}
+            <div class="not-submitted-section">
+                <h4 class="section-subtitle">Topshirmaganlar ({{ not_submitted|length }})</h4>
+                <div class="student-chips">
+                    {% for student in not_submitted %}
+                    <span class="student-chip">{{ student.get_full_name|default:student.username }}</span>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
         </div>
         {% endif %}
     </div>
 
-    <!-- O'ng panel -->
-    <div>
-        <div class="card mb-3">
-            <h4 style="color: var(--gray-600); margin-bottom: 1rem;">Ma'lumotlar</h4>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Guruh:</span>
-                    <a href="{% url 'group_detail' homework.group.pk %}"
-                        style="color: var(--primary); font-weight: 500;">{{ homework.group.name }}</a>
+    <!-- O'ng Panel (Info) -->
+    <div class="side-column">
+        <div class="card glass-card side-info">
+            <h4 class="info-title">Ma'lumotlar</h4>
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="label">Guruh</span>
+                    <a href="{% url 'group_detail' homework.group.pk %}" class="value link">{{homework.group.name}}</a>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Kurs:</span>
-                    <span>{{ homework.group.course.name }}</span>
+                <div class="info-item">
+                    <span class="label">Kurs</span>
+                    <span class="value">{{ homework.group.course.name }}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Deadline:</span>
-                    <span
-                        style="font-weight: 600; {% if not can_submit and user.role == 'STUDENT' %}color: var(--danger);{% endif %}">
+                <div class="info-item">
+                    <span class="label">Deadline</span>
+                    <span class="value {% if not can_submit %}text-danger{% endif %}">
                         {{ homework.deadline|date:"d.m.Y H:i" }}
                     </span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Yaratilgan:</span>
-                    <span>{{ homework.created_at|date:"d.m.Y" }}</span>
+                <div class="info-item">
+                    <span class="label">Yaratilgan</span>
+                    <span class="value">{{ homework.created_at|date:"d.m.Y" }}</span>
                 </div>
                 {% if homework.created_by %}
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Muallif:</span>
-                    <span>{{ homework.created_by.get_full_name|default:homework.created_by.username }}</span>
+                <div class="info-item">
+                    <span class="label">Muallif</span>
+                    <span class="value">{{homework.created_by.get_full_name|default:homework.created_by.username}}</span>
                 </div>
                 {% endif %}
             </div>
         </div>
 
         {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
-        <div class="card mb-3">
-            <h4 style="color: var(--gray-600); margin-bottom: 1rem;">Statistika</h4>
-            <div class="stat-card" style="box-shadow: none; padding: 1rem;">
-                <div class="stat-value" style="font-size: 2rem;">{{ avg_score|floatformat:1 }}%</div>
-                <div class="stat-label">O'rtacha ball</div>
+        <div class="card glass-card">
+            <h4 class="info-title">Statistika</h4>
+            <div class="stat-circle-wrapper">
+                <div class="stat-circle">
+                    <span class="stat-number">{{ avg_score|floatformat:0 }}%</span>
+                    <span class="stat-text">O'rtacha</span>
+                </div>
+                <!-- SVG Circle implementation could go here for ring chart -->
             </div>
-            <div class="progress mt-2">
-                <div class="progress-bar" style="width: {{ avg_score }}%;"></div>
+            <div class="progress mt-3" style="height: 6px; --progress-width: {{ avg_score|default:0|floatformat:0 }}%;">
+                <div class="progress-bar" style="width: var(--progress-width);"></div>
             </div>
+            <a href="{% url 'export_group' homework.group.pk %}" class="btn btn-success btn-block mt-3">
+                <i data-lucide="download"></i> Excel yuklash
+            </a>
         </div>
-
-        <a href="{% url 'export_group' homework.group.pk %}" class="btn btn-success" style="width: 100%;">
-            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
-            Excel yuklash
-        </a>
-        {% endif %}
-
-        {% if user.role == 'STUDENT' and can_submit and not submission %}
-        <a href="{% url 'submission_create' homework.pk %}" class="btn btn-primary btn-lg" style="width: 100%;">
-            <i data-lucide="send" style="width: 20px; height: 20px;"></i>
-            Vazifani topshirish
-        </a>
         {% endif %}
     </div>
 </div>
+
+<style>
+    /* Page Header */
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: rgba(248, 250, 252, 0.9);
+        /* var(--bg-main) with opacity */
+        backdrop-filter: blur(8px);
+        margin: -2rem -2rem 2rem -2rem;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-content {
+        flex: 1;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .back-link:hover {
+        color: var(--primary);
+    }
+
+    .back-link i {
+        width: 16px;
+        height: 16px;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .meta-tags {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        background: var(--bg-card);
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .meta-tag i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .meta-tag.expired {
+        color: var(--danger);
+        background: var(--danger-light);
+        border-color: transparent;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Layout */
+    .homework-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    /* Content Style */
+    .description-content {
+        white-space: pre-wrap;
+        line-height: 1.8;
+        color: var(--text-main);
+        font-size: 1rem;
+    }
+
+    /* Attachments */
+    .attachment-box {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .attachment-title {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .file-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--bg-main);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .file-link:hover {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: var(--shadow);
+    }
+
+    .file-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .file-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .file-name {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .file-action {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Submission Styling */
+    .text-submission {
+        background: var(--bg-main);
+        padding: 1.25rem;
+        border-radius: var(--radius);
+        white-space: pre-wrap;
+        color: var(--text-main);
+        border: 1px solid var(--gray-200);
+    }
+
+    .file-link.small {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .submission-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .grade-badge {
+        padding: 0.35rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .grade-badge.success {
+        background: var(--secondary-light);
+        color: var(--secondary);
+    }
+
+    .grade-badge.warning {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+
+    .grade-badge.danger {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    .teacher-feedback {
+        margin-top: 1rem;
+        background: var(--primary-light);
+        padding: 1rem;
+        border-radius: var(--radius);
+        color: var(--text-main);
+        border-left: 3px solid var(--primary);
+    }
+
+    .teacher-feedback p {
+        margin: 0.5rem 0 0 0;
+    }
+
+    /* Tables */
+    .clean-table th {
+        background: transparent;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        padding-bottom: 0.5rem;
+    }
+
+    .clean-table td {
+        padding: 1rem 0.5rem;
+        color: var(--text-main);
+    }
+
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .status-dot.success {
+        background: var(--secondary);
+    }
+
+    .status-dot.warning {
+        background: var(--warning);
+    }
+
+    .status-dot.danger {
+        background: var(--danger);
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-icon.primary {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .btn-icon.primary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-icon.secondary {
+        background: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-icon.secondary:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .not-submitted-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .section-subtitle {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-bottom: 1rem;
+    }
+
+    .student-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .student-chip {
+        padding: 0.25rem 0.75rem;
+        background: var(--danger-light);
+        color: var(--danger);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Side Info */
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .info-item .label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .info-item .value {
+        font-weight: 600;
+        color: var(--text-main);
+        font-size: 0.9rem;
+    }
+
+    .info-item .value.link {
+        color: var(--primary);
+    }
+
+    .stat-circle-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0;
+    }
+
+    .stat-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: var(--bg-main);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid var(--primary-light);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        line-height: 1;
+    }
+
+    .stat-text {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+        .homework-layout {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .side-column {
+            order: -1;
+            /* Info first on mobile? Or maybe keep it below content? */
+            /* Usually description is most important. Keeping default order. */
+            order: initial;
+        }
+
+        .sticky-header {
+            margin: -5rem -1rem 1rem -1rem;
+            /* Adjust for mobile padding */
+            padding: 1rem;
+            position: relative;
+            /* Unstick on mobile to save screen space */
+        }
+    }
+</style>
 {% endblock %}

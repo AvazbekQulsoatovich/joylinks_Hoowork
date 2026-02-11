@@ -59,6 +59,8 @@ class GroupForm(forms.ModelForm):
         return group
 
 
+from django.db.models import Q
+
 class AddStudentsToGroupForm(forms.Form):
     """Guruhga o'quvchilar qo'shish formasi"""
     
@@ -68,19 +70,41 @@ class AddStudentsToGroupForm(forms.Form):
         label="O'quvchilarni tanlang"
     )
     
-    def __init__(self, *args, group=None, **kwargs):
+    def __init__(self, *args, group=None, search_query=None, **kwargs):
         super().__init__(*args, **kwargs)
         if group:
             # Allaqachon guruhda bo'lmagan o'quvchilarni ko'rsatish
             existing_students = group.students.all()
-            self.fields['students'].queryset = User.objects.filter(
+            qs = User.objects.filter(
                 role='STUDENT', 
                 is_active=True
             ).exclude(id__in=existing_students)
+            
+            if search_query:
+                qs = qs.filter(
+                    Q(username__icontains=search_query) |
+                    Q(first_name__icontains=search_query) |
+                    Q(last_name__icontains=search_query)
+                )
+            
+            self.fields['students'].queryset = qs
 
 
-class RemoveFromGroupForm(forms.Form):
-    """Guruhdan o'quvchi/o'qituvchi olib tashlash"""
-    
-    user_id = forms.IntegerField(widget=forms.HiddenInput())
-    user_type = forms.CharField(widget=forms.HiddenInput())  # 'student' or 'teacher'
+class AssignUserToGroupsForm(forms.Form):
+    """Foydalanuvchini guruhlarga biriktirish formasi"""
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'group-checkbox'}),
+        label="Guruhlarni tanlang"
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            # Foydalanuvchi turiga qarab guruhlarni filtrlash
+            if user.role == 'TEACHER':
+                self.fields['groups'].queryset = Group.objects.all()
+                self.fields['groups'].initial = user.teaching_groups.all()
+            elif user.role == 'STUDENT':
+                self.fields['groups'].queryset = Group.objects.all()
+                self.fields['groups'].initial = user.study_groups.all()

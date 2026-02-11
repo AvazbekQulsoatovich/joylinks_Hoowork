@@ -1,159 +1,173 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Profil: {{ target_user.username }} - HooWork{% endblock %}
 
 {% block content %}
-<header class="page-header">
-    <div>
-        <a href="{% url 'user_list' %}" class="text-muted"
-            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Foydalanuvchilar
+<header class="page-header mb-4">
+    <div class="d-flex flex-column gap-2">
+        <a href="{% url 'user_list' %}" class="btn-link sm">
+            <i data-lucide="arrow-left"></i> Orqaga
         </a>
         <h1 class="page-title">{{ target_user.get_full_name|default:target_user.username }}</h1>
         <p class="page-subtitle">{{ target_user.get_role_display }}</p>
     </div>
-    <div style="display: flex; gap: 1rem;">
+    <div class="actions mt-3">
         <a href="{% url 'change_user_password' target_user.pk %}" class="btn btn-warning">
-            <i data-lucide="key" style="width: 18px; height: 18px;"></i> Parolni o'zgartirish
+            <i data-lucide="key"></i> <span>Parol</span>
         </a>
         <a href="{% url 'user_update' target_user.pk %}" class="btn btn-secondary">
-            <i data-lucide="edit" style="width: 18px; height: 18px;"></i> Tahrirlash
+            <i data-lucide="edit"></i> <span>Tahrirlash</span>
         </a>
     </div>
 </header>
 
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
-    <!-- Chap panel: Ma'lumotlar -->
-    <div>
-        <div class="card mb-3">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div
-                    style="width: 100px; height: 100px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                    <i data-lucide="user" style="width: 50px; height: 50px;"></i>
-                </div>
-                <h3 class="font-bold">{{ target_user.username }}</h3>
-                <span class="badge {% if target_user.is_active %}badge-success{% else %}badge-danger{% endif %}">
-                    {% if target_user.is_active %}Faol{% else %}Bloklangan{% endif %}
-                </span>
+<div class="user-detail-grid">
+    <!-- Left Panel: Info -->
+    <div class="detail-sidebar">
+        <div class="card p-4 text-center mb-4">
+            <div class="avatar-large mx-auto mb-3">
+                <i data-lucide="user"></i>
             </div>
+            <h3 class="font-bold mb-1">{{ target_user.username }}</h3>
+            <span class="badge {% if target_user.is_active %}badge-success{% else %}badge-danger{% endif %} mb-4">
+                {% if target_user.is_active %}Faol{% else %}Bloklangan{% endif %}
+            </span>
 
-            <div
-                style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--gray-200); padding-top: 1.5rem;">
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Email:</span>
-                    <span>{{ target_user.email|default:"-" }}</span>
+            <div class="info-list text-left border-top pt-4">
+                <div class="info-item">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ target_user.email|default:"-" }}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Telefon:</span>
-                    <span>{{ target_user.phone|default:"-" }}</span>
+                <div class="info-item">
+                    <span class="label">Telefon:</span>
+                    <span class="value">{{ target_user.phone|default:"-" }}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Qo'shilgan:</span>
-                    <span>{{ target_user.date_joining|date:"d.m.Y" }}</span>
+                <div class="info-item">
+                    <span class="label">Qo'shilgan:</span>
+                    <span class="value">{{ target_user.date_joining|date:"d.m.Y" }}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span class="text-muted">Oxirgi kirish:</span>
-                    <span>{{ target_user.last_login|date:"d.m.Y H:i"|default:"Hali kirmagan" }}</span>
+                <div class="info-item">
+                    <span class="label">Oxirgi kirish:</span>
+                    <span class="value">{{ target_user.last_login|date:"d.m.y H:i"|default:"-" }}</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- O'ng panel: Faoliyat -->
-    <div>
+    <!-- Right Panel: Activity -->
+    <div class="detail-main">
         {% if target_user.role == 'STUDENT' %}
-        <div class="card mb-3">
-            <h3 class="card-title mb-3">O'quvchi statistikasi</h3>
-            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="stat-card" style="box-shadow: none;">
-                    <div class="stat-value">{{ avg_score }}%</div>
-                    <div class="stat-label">O'rtacha ball</div>
-                </div>
-                <div class="stat-card" style="box-shadow: none;">
-                    <div class="stat-value">{{ submission_count }}</div>
-                    <div class="stat-label">Topshirilgan vazifalar</div>
-                </div>
+        <div class="stats-grid mb-4">
+            <div class="stat-card">
+                <div class="stat-value">{{ avg_score }}%</div>
+                <div class="stat-label">O'rtacha ball</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ submission_count }}</div>
+                <div class="stat-label">Vazifalar</div>
             </div>
         </div>
 
         <div class="card">
-            <h3 class="card-title mb-3">Guruhlari</h3>
-            {% if groups %}
-            <div class="table-container" style="box-shadow: none;">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Kurs</th>
-                            <th>Guruh</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for g in groups %}
-                        <tr>
-                            <td>{{ g.course.name }}</td>
-                            <td><strong>{{ g.name }}</strong></td>
-                            <td>
-                                <a href="{% url 'group_detail' g.pk %}" class="btn btn-sm btn-outline">
-                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-header">
+                <h3 class="card-title">Guruhlari</h3>
+                {% if user.role == 'ADMIN' %}
+                <a href="{% url 'assign_user_to_groups' target_user.pk %}" class="btn btn-sm btn-primary">
+                    <i data-lucide="user-plus"></i> Biriktirish
+                </a>
+                {% endif %}
             </div>
-            {% else %}
-            <p class="text-muted">Hali guruhga qo'shilmagan.</p>
-            {% endif %}
+            <div class="list-container">
+                {% for g in groups %}
+                <div class="list-item-custom clickable" data-href="{% url 'group_detail' g.pk %}">
+                    <div class="item-title">{{ g.name }}</div>
+                    <div class="item-details">{{ g.course.name }}</div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Guruhlar yo'q</div>
+                {% endfor %}
+            </div>
         </div>
+
         {% elif target_user.role == 'TEACHER' %}
-        <div class="card mb-3">
-            <h3 class="card-title mb-3">O'qituvchi statistikasi</h3>
-            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="stat-card" style="box-shadow: none;">
-                    <div class="stat-value">{{ groups|length }}</div>
-                    <div class="stat-label">Guruhlar soni</div>
-                </div>
-                <div class="stat-card" style="box-shadow: none;">
-                    <div class="stat-value">{{ homework_count }}</div>
-                    <div class="stat-label">Berilgan vazifalar</div>
-                </div>
+        <div class="stats-grid mb-4">
+            <div class="stat-card">
+                <div class="stat-value">{{ groups|length }}</div>
+                <div class="stat-label">Guruhlar</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ homework_count }}</div>
+                <div class="stat-label">Berilgan vazifalar</div>
             </div>
         </div>
 
         <div class="card">
-            <h3 class="card-title mb-3">Biriktirilgan guruhlar</h3>
-            {% if groups %}
-            <div class="table-container" style="box-shadow: none;">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Kurs</th>
-                            <th>Guruh</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for g in groups %}
-                        <tr>
-                            <td>{{ g.course.name }}</td>
-                            <td><strong>{{ g.name }}</strong></td>
-                            <td>
-                                <a href="{% url 'group_detail' g.pk %}" class="btn btn-sm btn-outline">
-                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-header">
+                <h3 class="card-title">Biriktirilgan guruhlar</h3>
+                {% if user.role == 'ADMIN' %}
+                <a href="{% url 'assign_user_to_groups' target_user.pk %}" class="btn btn-sm btn-primary">
+                    <i data-lucide="user-plus"></i> Biriktirish
+                </a>
+                {% endif %}
             </div>
-            {% else %}
-            <p class="text-muted">Hali guruhga biriktirilmagan.</p>
-            {% endif %}
+            <div class="list-container">
+                {% for g in groups %}
+                <div class="list-item-custom clickable" data-href="{% url 'group_detail' g.pk %}">
+                    <div class="item-title">{{ g.name }}</div>
+                    <div class="item-details">{{ g.course.name }}</div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Guruhlar yo'q</div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+    .user-detail-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 1.5rem;
+    }
+
+    .avatar-large {
+        width: 100px;
+        height: 100px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .avatar-large i {
+        width: 50px;
+        height: 50px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .info-item .label {
+        color: var(--text-muted);
+    }
+
+    .info-item .value {
+        font-weight: 500;
+    }
+
+    @media (max-width: 900px) {
+        .user-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %}

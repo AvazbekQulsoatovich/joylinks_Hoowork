@@ -1,0 +1,100 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Profilni tahrirlash - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header glass-card mb-4">
+    <div class="header-content">
+        <a href="{% url 'profile' %}" class="back-link">
+            <i data-lucide="arrow-left"></i> Orqaga
+        </a>
+        <h1 class="page-title"
+            style="background: var(--primary-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+            Profilni tahrirlash</h1>
+    </div>
+</header>
+
+<div class="card glass-card max-w-2xl mx-auto">
+    <form method="post" class="p-1">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="form-group {% if field.name == 'email' %}full-width{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="field-errors">
+                    {% for error in field.errors %}
+                    <span class="text-danger text-xs">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions mt-5 pt-4 border-t border-gray-100">
+            <button type="submit" class="btn btn-primary btn-glow btn-block py-3">
+                <i data-lucide="check"></i> O'zgarishlarni saqlash
+            </button>
+            <a href="{% url 'profile' %}" class="btn btn-secondary btn-block mt-2">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .max-w-2xl {
+        max-width: 600px;
+    }
+
+    .mx-auto {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+
+    .full-width {
+        grid-column: span 2;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        background: rgba(255, 255, 255, 0.5);
+        transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px var(--primary-light);
+        outline: none;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .full-width {
+            grid-column: initial;
+        }
+    }
+</style>
+{% endblock %}

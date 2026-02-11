@@ -7,7 +7,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden
 from django.db.models import Avg, Count
 from .models import Course, Group
-from .forms import CourseForm, GroupForm, AddStudentsToGroupForm
+from .forms import CourseForm, GroupForm, AddStudentsToGroupForm, AssignUserToGroupsForm
 from homeworks.models import Homework, Submission
 from users.models import User
 
@@ -238,13 +238,22 @@ class GroupDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
 @login_required
 def add_students_to_group(request, group_id):
     """Guruhga o'quvchilar qo'shish"""
-    if request.user.role != 'ADMIN':
-        return HttpResponseForbidden("Faqat Admin qo'shishi mumkin.")
+    if request.user.role not in ['ADMIN', 'MODERATOR']:
+        return HttpResponseForbidden("Faqat Admin yoki Moderator qo'shishi mumkin.")
     
     group = get_object_or_404(Group, pk=group_id)
     
     if request.method == 'POST':
-        form = AddStudentsToGroupForm(request.POST, group=group)
+        # Search query is not needed for POST unless we want to keep the list filtered if validation fails,
+        # but here we just process IDs. However, if the user submits, the form validation checks if IDs are in queryset.
+        # So we MUST pass the search_query to POST as well if the form uses it to set queryset.
+        # But usually ModelMultipleChoiceField validates against the full queryset or the one set in __init__.
+        # If we limit the queryset in __init__, and user submits an ID that is NOT in the limited queryset (e.g. they cleared search before submit?), 
+        # it might be an issue. But here, if they submit, they submit what they see.
+        # Let's pass search_query from GET (if present in URL action) or input... 
+        # Actually, standard pattern is to keep form consistent.
+        search_query = request.GET.get('search')
+        form = AddStudentsToGroupForm(request.POST, group=group, search_query=search_query)
         if form.is_valid():
             students = form.cleaned_data['students']
             for student in students:
@@ -252,19 +261,22 @@ def add_students_to_group(request, group_id):
             messages.success(request, f"{len(students)} ta o'quvchi qo'shildi!")
             return redirect('group_detail', pk=group_id)
     else:
-        form = AddStudentsToGroupForm(group=group)
+        search_query = request.GET.get('search')
+        form = AddStudentsToGroupForm(group=group, search_query=search_query)
     
     return render(request, 'academy/add_students.html', {
         'form': form,
-        'group': group
+        'group': group,
+        'available_students': form.fields['students'].queryset,
+        'current_search': search_query
     })
 
 
 @login_required
 def remove_student_from_group(request, group_id, student_id):
     """Guruhdan o'quvchini olib tashlash"""
-    if request.user.role != 'ADMIN':
-        return HttpResponseForbidden("Faqat Admin olib tashlashi mumkin.")
+    if request.user.role not in ['ADMIN', 'MODERATOR']:
+        return HttpResponseForbidden("Faqat Admin yoki Moderator olib tashlashi mumkin.")
     
     group = get_object_or_404(Group, pk=group_id)
     student = get_object_or_404(User, pk=student_id)
@@ -279,8 +291,8 @@ def remove_student_from_group(request, group_id, student_id):
 @login_required
 def change_group_teacher(request, group_id):
     """Guruh o'qituvchisini almashtirish"""
-    if request.user.role != 'ADMIN':
-        return HttpResponseForbidden("Faqat Admin.")
+    if request.user.role not in ['ADMIN', 'MODERATOR']:
+        return HttpResponseForbidden("Faqat Admin yoki Moderator.")
     
     group = get_object_or_404(Group, pk=group_id)
     
@@ -293,3 +305,29 @@ def change_group_teacher(request, group_id):
             messages.success(request, f"O'qituvchi {teacher.username} ga o'zgartirildi!")
     
     return redirect('group_detail', pk=group_id)
+@login_required
+def assign_user_to_groups(request, user_id):
+    """Foydalanuvchini guruhlarga biriktirish"""
+    if request.user.role not in ['ADMIN', 'MODERATOR']:
+        return HttpResponseForbidden("Faqat Admin yoki Moderator guruhlarga biriktira oladi.")
+    
+    target_user = get_object_or_404(User, pk=user_id)
+    
+    if request.method == 'POST':
+        form = AssignUserToGroupsForm(request.POST, user=target_user)
+        if form.is_valid():
+            new_groups = form.cleaned_data['groups']
+            if target_user.role == 'TEACHER':
+                target_user.teaching_groups.set(new_groups)
+            elif target_user.role == 'STUDENT':
+                target_user.study_groups.set(new_groups)
+            
+            messages.success(request, f"{target_user.username} guruhlari yangilandi!")
+            return redirect('user_detail', pk=user_id)
+    else:
+        form = AssignUserToGroupsForm(user=target_user)
+    
+    return render(request, 'academy/assign_groups.html', {
+        'form': form,
+        'target_user': target_user,
+    })

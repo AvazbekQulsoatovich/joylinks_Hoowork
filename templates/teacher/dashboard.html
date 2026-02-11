@@ -1,137 +1,288 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block title %}O'qituvchi Dashboard - HooWork{% endblock %}
+{% block title %}O'qituvchi - HooWork{% endblock %}
 
 {% block content %}
-<header class="page-header">
-    <div>
-        <h1 class="page-title">O'qituvchi Dashboard</h1>
-        <p class="page-subtitle">Xush kelibsiz, {{ user.get_full_name|default:user.username }}!</p>
+<!-- Header -->
+<div class="dashboard-header card mb-4">
+    <div class="greeting">
+        <h1>O'qituvchi paneli</h1>
+        <p>Xush kelibsiz, {{ user.first_name|default:user.username }}!</p>
     </div>
-    <div style="display: flex; gap: 1rem;">
+    <div class="actions">
         <a href="{% url 'homework_create' %}" class="btn btn-primary">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
-            Yangi Vazifa
+            <i data-lucide="plus"></i> <span>Yangi vazifa</span>
         </a>
-    </div>
-</header>
-
-<!-- Stats -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-value">{{ groups|length }}</div>
-        <div class="stat-label">Guruhlarim</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ total_students }}</div>
-        <div class="stat-label">Jami Talabalar</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ total_homeworks }}</div>
-        <div class="stat-label">Berilgan Vazifalar</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value" style="color: var(--warning);">{{ pending_count }}</div>
-        <div class="stat-label">Tekshirilmagan</div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-    <!-- Guruhlarim -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Guruhlarim</h3>
-            <a href="{% url 'group_list' %}" class="btn btn-sm btn-outline">Barchasi</a>
+<!-- Stats Grid -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-card-icon primary"><i data-lucide="users"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ groups|length }}</div>
+            <div class="stat-label">Guruhlar</div>
         </div>
-        {% if group_stats %}
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            {% for stat in group_stats %}
-            <div class="list-item" style="cursor: pointer;"
-                onclick="location.href='{% url 'group_detail' stat.group.pk %}'">
-                <div class="list-item-icon">
-                    <i data-lucide="users" style="width: 20px; height: 20px;"></i>
-                </div>
-                <div class="list-item-content">
-                    <div class="list-item-title">{{ stat.group.name }}</div>
-                    <div class="list-item-subtitle">
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon secondary"><i data-lucide="book-open"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Talabalar</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon accent"><i data-lucide="file-text"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_homeworks }}</div>
+            <div class="stat-label">Vazifalar</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon warning"><i data-lucide="clock"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value {% if pending_count > 0 %}text-danger{% endif %}">{{ pending_count }}</div>
+            <div class="stat-label">Kutilmoqda</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-layout-grid">
+    <!-- Main Section -->
+    <div class="dashboard-main">
+        <!-- My Groups -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Guruhlarim</h3>
+                <a href="{% url 'group_list' %}" class="btn-link">Barchasi <i data-lucide="chevron-right"></i></a>
+            </div>
+            <div class="list-container">
+                {% for stat in group_stats %}
+                <div class="list-item-custom clickable" data-href="{% url 'group_detail' stat.group.pk %}">
+                    <div class="item-header">
+                        <span class="item-title">{{ stat.group.name }}</span>
+                        <span
+                            class="badge {% if stat.avg_score >= 70 %}badge-success{% elif stat.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {{ stat.avg_score|floatformat:0 }}%
+                        </span>
+                    </div>
+                    <div class="item-details">
                         {{ stat.group.course.name }} • {{ stat.students }} talaba
+                        {% if stat.pending > 0 %}
+                        <span class="badge badge-warning ml-2">{{ stat.pending }} yangi</span>
+                        {% endif %}
                     </div>
                 </div>
-                <div style="text-align: right;">
-                    <div
-                        class="badge {% if stat.avg_score >= 70 %}badge-success{% elif stat.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
-                        {{ stat.avg_score }}%
-                    </div>
-                    {% if stat.pending > 0 %}
-                    <div class="badge badge-warning mt-1">{{ stat.pending }} tekshirilmagan</div>
-                    {% endif %}
-                </div>
+                {% empty %}
+                <div class="empty-state">Sizga guruh biriktirilmagan.</div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <div class="empty-state">
-            <i data-lucide="users" style="width: 48px; height: 48px;"></i>
-            <h3>Guruhlar yo'q</h3>
-            <p>Admin sizni guruhga biriktirishi kerak</p>
-        </div>
-        {% endif %}
     </div>
 
-    <!-- Tekshirilmagan topshiriqlar -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Tekshirilmagan topshiriqlar</h3>
-            <a href="{% url 'teacher_submissions' %}" class="btn btn-sm btn-outline">Barchasi</a>
-        </div>
-        {% if pending_submissions %}
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            {% for sub in pending_submissions %}
-            <div class="list-item" style="cursor: pointer;"
-                onclick="location.href='{% url 'grade_submission' sub.pk %}'">
-                <div class="list-item-icon" style="background: var(--warning-light); color: var(--warning);">
-                    <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
-                </div>
-                <div class="list-item-content">
-                    <div class="list-item-title">{{ sub.student.get_full_name|default:sub.student.username }}</div>
-                    <div class="list-item-subtitle">
-                        {{ sub.homework.title }}
-                    </div>
-                </div>
-                <div class="list-item-meta">
-                    {{ sub.submitted_at|timesince }} oldin
-                </div>
+    <!-- Sidebar Section -->
+    <div class="dashboard-sidebar">
+        <!-- Pending Submissions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Tekshirilishi kerak</h3>
+                <a href="{% url 'teacher_submissions' %}" class="btn-link sm">Barchasi</a>
             </div>
-            {% endfor %}
+            <div class="list-container mini">
+                {% for sub in pending_submissions %}
+                <div class="list-item-custom clickable sm" data-href="{% url 'grade_submission' sub.pk %}">
+                    <div class="item-title-sm">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                    <div class="item-subtitle-sm">{{ sub.homework.title|truncatechars:20 }}</div>
+                    <div class="item-meta-sm">{{ sub.submitted_at|timesince }} oldin</div>
+                </div>
+                {% empty %}
+                <div class="empty-state sm text-center py-3">
+                    <i data-lucide="check-circle" class="text-success mb-2"></i>
+                    <p>Hamma topshiriqlar tekshirilgan!</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% else %}
-        <div class="empty-state">
-            <i data-lucide="check-circle" style="width: 48px; height: 48px; color: var(--secondary);"></i>
-            <h3>Hammasi tekshirilgan! 🎉</h3>
-            <p>Tekshirilmagan topshiriq yo'q</p>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3 class="card-title mb-3">Tezkor amallar</h3>
+            <div class="quick-grid">
+                <a href="{% url 'homework_create' %}" class="q-btn"><i data-lucide="plus-circle"></i><span>Yangi
+                        vazifa</span></a>
+                <a href="{% url 'teacher_submissions' %}" class="q-btn"><i
+                        data-lucide="clipboard-list"></i><span>Topshiriqlar</span></a>
+                <a href="{% url 'profile' %}" class="q-btn"><i data-lucide="settings"></i><span>Profil</span></a>
+                <a href="{% url 'notifications' %}" class="q-btn position-relative">
+                    <i data-lucide="bell"></i>
+                    <span>Xabarlar</span>
+                </a>
+            </div>
         </div>
-        {% endif %}
     </div>
 </div>
 
-<!-- Tezkor harakatlar -->
-<div class="card mt-3">
-    <h3 class="card-title mb-3">Tezkor harakatlar</h3>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <a href="{% url 'homework_create' %}" class="btn btn-primary">
-            <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
-            Yangi vazifa yaratish
-        </a>
-        <a href="{% url 'teacher_submissions' %}" class="btn btn-secondary">
-            <i data-lucide="clipboard-list" style="width: 18px; height: 18px;"></i>
-            Barcha topshiriqlar
-        </a>
-        {% for stat in group_stats|slice:":3" %}
-        <a href="{% url 'group_stats' stat.group.pk %}" class="btn btn-outline">
-            <i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i>
-            {{ stat.group.name }} statistikasi
-        </a>
-        {% endfor %}
-    </div>
-</div>
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--white);
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+    }
+
+    .dashboard-header p {
+        color: var(--text-muted);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-100);
+    }
+
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card-icon.primary {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .stat-card-icon.secondary {
+        background: var(--secondary-light);
+        color: var(--secondary);
+    }
+
+    .stat-card-icon.accent {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+
+    .stat-card-icon.warning {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    .dashboard-layout-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .list-item-custom {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .list-item-custom.clickable:hover {
+        transform: translateX(5px);
+        cursor: pointer;
+    }
+
+    .list-item-custom:last-child {
+        border-bottom: none;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .item-details {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .item-title-sm {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .item-subtitle-sm {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .item-meta-sm {
+        font-size: 0.75rem;
+        color: var(--text-light);
+    }
+
+    .quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .q-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        background: var(--gray-50);
+        border-radius: var(--radius);
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .q-btn:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-layout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .dashboard-header .btn {
+            width: 100%;
+        }
+    }
+</style>
 {% endblock %}

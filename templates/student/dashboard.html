@@ -1,173 +1,264 @@
 {% extends 'base/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard - HooWork{% endblock %}
 
 {% block content %}
-<header class="page-header">
-    <div>
-        <h1 class="page-title">Mening Dashboard'im</h1>
-        <p class="page-subtitle">Xush kelibsiz, {{ user.get_full_name|default:user.username }}!</p>
+<!-- Header -->
+<div class="dashboard-header card mb-4">
+    <div class="greeting">
+        <h1>Mening panelim</h1>
+        <p>Xush kelibsiz, {{ user.first_name|default:user.username }}!</p>
     </div>
-</header>
+</div>
 
-<!-- Deadline ogohlantirishlar -->
+<!-- Alerts -->
 {% if upcoming_deadlines %}
-<div class="deadline-warning">
-    <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
-    <strong>Diqqat!</strong> Yaqin kunlarda {{ upcoming_deadlines|length }} ta vazifaning muddati tugaydi.
+<div class="alert alert-warning mb-4 glow">
+    <i data-lucide="alert-triangle"></i>
+    <span>Yaqin orada {{ upcoming_deadlines|length }} ta vazifa muddati tugaydi!</span>
 </div>
 {% endif %}
 
-<!-- Stats -->
-<div class="stats-grid">
+<!-- Stats Grid -->
+<div class="stats-grid mb-4">
     <div class="stat-card">
-        <div class="stat-value">{{ groups|length }}</div>
-        <div class="stat-label">Guruhlarim</div>
+        <div class="stat-card-icon primary"><i data-lucide="users"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ groups|length }}</div>
+            <div class="stat-label">Guruhlarim</div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ submitted_count }}/{{ total_homeworks }}</div>
-        <div class="stat-label">Topshirilgan vazifalar</div>
+        <div class="stat-card-icon secondary"><i data-lucide="check-circle"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ submitted_count }}/{{ total_homeworks }}</div>
+            <div class="stat-label">Topshirildi</div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-value"
-            style="{% if avg_score >= 70 %}color: var(--secondary);{% elif avg_score >= 50 %}color: var(--warning);{% else %}color: var(--danger);{% endif %}">
-            {{ avg_score }}%</div>
-        <div class="stat-label">O'rtacha ballim</div>
+        <div
+            class="stat-card-icon {% if avg_score >= 70 %}secondary{% elif avg_score >= 50 %}warning{% else %}accent{% endif %}">
+            <i data-lucide="trending-up"></i>
+        </div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ avg_score|floatformat:1 }}%</div>
+            <div class="stat-label">O'rtacha ball</div>
+        </div>
     </div>
 </div>
 
-<!-- Progress bar -->
-{% if total_homeworks > 0 %}
-<div class="card mb-3">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-        <span class="text-muted">Umumiy progress</span>
-        <span class="font-bold">{{ submitted_count }}/{{ total_homeworks }}</span>
-    </div>
-    <div class="progress">
-        <div class="progress-bar" style="width: {% widthratio submitted_count total_homeworks 100 %}%;"></div>
-    </div>
-</div>
-{% endif %}
-
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-    <!-- Vazifalar -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Oxirgi vazifalar</h3>
-            <a href="{% url 'homework_list' %}" class="btn btn-sm btn-outline">Barchasi</a>
-        </div>
-        {% if homeworks %}
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            {% for hw in homeworks %}
-            <div class="list-item" style="cursor: pointer;" onclick="location.href='{% url 'homework_detail' hw.pk %}'">
-                <div class="list-item-icon"
-                    style="{% if hw.is_locked %}background: var(--gray-200); color: var(--gray-500);{% elif hw.is_overdue %}background: var(--danger-light); color: var(--danger);{% else %}background: var(--primary-light); color: var(--primary);{% endif %}">
-                    <i data-lucide="{% if hw.is_locked %}lock{% elif hw.is_overdue %}alert-circle{% else %}file-text{% endif %}"
-                        style="width: 20px; height: 20px;"></i>
-                </div>
-                <div class="list-item-content">
-                    <div class="list-item-title">{{ hw.title }}</div>
-                    <div class="list-item-subtitle">
-                        {{ hw.group.name }} • {{ hw.group.course.name }}
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div class="list-item-meta">
-                        Deadline: {{ hw.deadline|date:"d.m.Y H:i" }}
-                    </div>
-                    {% if hw.is_submitted %}
-                    <span class="badge badge-success">Topshirilgan</span>
-                    {% elif hw.is_overdue %}
-                    <span class="badge badge-danger">Muddat o'tgan</span>
-                    {% elif hw.is_locked %}
-                    <span class="badge badge-secondary">Qulflangan</span>
-                    {% else %}
-                    <span class="badge badge-warning">Kutilmoqda</span>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <i data-lucide="file-text" style="width: 48px; height: 48px;"></i>
-            <h3>Vazifalar yo'q</h3>
-            <p>Hozircha sizga vazifa berilmagan</p>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- O'ng panel -->
-    <div>
-        <!-- Bildirishnomalar -->
-        <div class="card mb-3">
+<div class="dashboard-layout-grid">
+    <!-- Main Section -->
+    <div class="dashboard-main">
+        <!-- Recent Tasks -->
+        <div class="card mb-4">
             <div class="card-header">
-                <h3 class="card-title">Bildirishnomalar</h3>
-                <a href="{% url 'notifications' %}" class="btn btn-sm btn-outline">
-                    <i data-lucide="bell" style="width: 14px; height: 14px;"></i>
-                </a>
+                <h3 class="card-title">Oxirgi vazifalar</h3>
+                <a href="{% url 'homework_list' %}" class="btn-link">Barchasi <i data-lucide="chevron-right"></i></a>
             </div>
-            {% if notifications %}
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="list-container">
+                {% for hw in homeworks %}
+                <div class="list-item-custom clickable" data-href="{% url 'homework_detail' hw.pk %}">
+                    <div class="item-header">
+                        <span class="item-title">{{ hw.title }}</span>
+                        {% if hw.is_submitted %}
+                        <span class="badge badge-success">Topshirilgan</span>
+                        {% elif hw.is_overdue %}
+                        <span class="badge badge-danger">Muddat o'tgan</span>
+                        {% else %}
+                        <span class="badge badge-warning">Kutilmoqda</span>
+                        {% endif %}
+                    </div>
+                    <div class="item-details">
+                        {{ hw.group.name }} • Muddati: {{ hw.deadline|date:"d.m, H:i" }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Hozircha vazifalar yo'q.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Section -->
+    <div class="dashboard-sidebar">
+        <!-- Notifications -->
+        <div class="card mb-4">
+            <h3 class="card-title mb-3">Bildirishnomalar</h3>
+            <div class="list-container mini">
                 {% for notif in notifications %}
-                <div class="list-item" style="cursor: pointer;"
-                    onclick="location.href='{% url 'mark_notification_read' notif.pk %}'">
-                    <div class="list-item-icon"
-                        style="width: 32px; height: 32px; background: {% if notif.notification_type == 'DEADLINE' %}var(--warning-light){% elif notif.notification_type == 'GRADED' %}var(--secondary-light){% else %}var(--info-light){% endif %}; color: {% if notif.notification_type == 'DEADLINE' %}var(--warning){% elif notif.notification_type == 'GRADED' %}var(--secondary){% else %}var(--info){% endif %};">
-                        <i data-lucide="{% if notif.notification_type == 'DEADLINE' %}clock{% elif notif.notification_type == 'GRADED' %}check-circle{% else %}bell{% endif %}"
-                            style="width: 16px; height: 16px;"></i>
-                    </div>
-                    <div class="list-item-content">
-                        <div class="list-item-title" style="font-size: 0.875rem;">{{ notif.title }}</div>
-                        <div class="list-item-meta">{{ notif.created_at|timesince }} oldin</div>
-                    </div>
+                <div class="list-item-custom clickable sm" data-href="{% url 'mark_notification_read' notif.pk %}">
+                    <div class="item-title-sm">{{ notif.title }}</div>
+                    <div class="item-meta-sm">{{ notif.created_at|timesince }} oldin</div>
                 </div>
+                {% empty %}
+                <div class="empty-state sm">Yangi xabarlar yo'q.</div>
                 {% endfor %}
             </div>
-            {% else %}
-            <p class="text-muted text-center">Bildirishnomalar yo'q</p>
-            {% endif %}
         </div>
 
-        <!-- Yaqin deadline'lar -->
-        {% if upcoming_deadlines %}
+        <!-- My Groups -->
         <div class="card">
-            <h3 class="card-title mb-3">⏰ Yaqin deadline'lar</h3>
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                {% for hw in upcoming_deadlines %}
-                <div class="list-item" style="background: var(--warning-light); cursor: pointer;"
-                    onclick="location.href='{% url 'homework_detail' hw.pk %}'">
-                    <div class="list-item-content">
-                        <div class="list-item-title" style="font-size: 0.875rem;">{{ hw.title }}</div>
-                        <div class="list-item-subtitle" style="color: var(--danger);">
-                            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
-                            {{ hw.deadline|date:"d.m.Y H:i" }}
-                        </div>
-                    </div>
-                    <a href="{% url 'submission_create' hw.pk %}" class="btn btn-sm btn-warning">Topshirish</a>
+            <h3 class="card-title mb-3">Guruhlarim</h3>
+            <div class="list-container mini">
+                {% for group in groups %}
+                <div class="list-item-custom sm">
+                    <div class="item-title-sm">{{ group.name }}</div>
+                    <div class="item-subtitle-sm">{{ group.course.name }}</div>
                 </div>
+                {% empty %}
+                <div class="empty-state sm">Guruhsiz</div>
                 {% endfor %}
             </div>
-        </div>
-        {% endif %}
-
-        <!-- Guruhlarim -->
-        <div class="card mt-3">
-            <h3 class="card-title mb-3">Guruhlarim</h3>
-            {% for group in groups %}
-            <div class="list-item">
-                <div class="list-item-icon" style="width: 32px; height: 32px;">
-                    <i data-lucide="users" style="width: 16px; height: 16px;"></i>
-                </div>
-                <div class="list-item-content">
-                    <div class="list-item-title" style="font-size: 0.875rem;">{{ group.name }}</div>
-                    <div class="list-item-meta">{{ group.course.name }}</div>
-                </div>
-            </div>
-            {% empty %}
-            <p class="text-muted text-center">Guruhga qo'shilmagansiz</p>
-            {% endfor %}
         </div>
     </div>
 </div>
+
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--white);
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+        color: var(--text-main);
+    }
+
+    .dashboard-header p {
+        color: var(--text-muted);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        color: #854d0e;
+        border: 1px solid #fef3c7;
+    }
+
+    .glow {
+        box-shadow: 0 0 15px rgba(234, 179, 8, 0.2);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-100);
+    }
+
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card-icon.primary {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .stat-card-icon.secondary {
+        background: var(--secondary-light);
+        color: var(--secondary);
+    }
+
+    .stat-card-icon.warning {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .stat-card-icon.accent {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    .dashboard-layout-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .list-item-custom {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .list-item-custom.clickable:hover {
+        transform: translateX(5px);
+        cursor: pointer;
+    }
+
+    .list-item-custom:last-child {
+        border-bottom: none;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .item-details {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .item-title-sm {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .item-subtitle-sm {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .item-meta-sm {
+        font-size: 0.75rem;
+        color: var(--text-light);
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-layout-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %}

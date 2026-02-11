@@ -14,7 +14,25 @@
     </div>
 </header>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+<style>
+    .submission-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+        .submission-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .submission-layout>div:nth-child(2) {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<div class="submission-layout">
     <!-- Form -->
     <div class="card">
         <form method="post" enctype="multipart/form-data" id="submission-form">

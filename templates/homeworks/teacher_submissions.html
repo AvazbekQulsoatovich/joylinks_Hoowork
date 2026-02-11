@@ -52,8 +52,7 @@
                     <td>{{ sub.homework.title|truncatechars:30 }}</td>
                     <td>{{ sub.homework.group.name }}</td>
                     <td>
-                        <span class="text-muted" style="font-size: 0.875rem;">{{ sub.submitted_at|date:"d.m.Y H:i"
-                            }}</span>
+                        <span class="text-muted" style="font-size: 0.875rem;">{{sub.submitted_at|date:"d.m.Y H:i"}}</span>
                     </td>
                     <td>
                         {% if sub.is_graded %}
@@ -64,8 +63,7 @@
                     </td>
                     <td>
                         <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-sm btn-primary">
-                            {% if sub.is_graded %}<i data-lucide="eye" style="width: 14px; height: 14px;"></i> Ko'rish{%
-                            else %}<i data-lucide="check" style="width: 14px; height: 14px;"></i> Baholash{% endif %}
+                            {% if sub.is_graded %}<i data-lucide="eye" style="width: 14px; height: 14px;"></i> Ko'rish{%else%}<i data-lucide="check" style="width: 14px; height: 14px;"></i> Baholash{% endif %}
                         </a>
                     </td>
                 </tr>

@@ -7,7 +7,7 @@ from .views import (
     GroupListView, GroupDetailView, GroupCreateView,
     GroupUpdateView, GroupDeleteView,
     # Student management
-    add_students_to_group, remove_student_from_group, change_group_teacher
+    add_students_to_group, remove_student_from_group, change_group_teacher, assign_user_to_groups
 )
 
 urlpatterns = [
@@ -29,4 +29,5 @@ urlpatterns = [
     path('groups/<int:group_id>/add-students/', add_students_to_group, name='add_students_to_group'),
     path('groups/<int:group_id>/remove-student/<int:student_id>/', remove_student_from_group, name='remove_student_from_group'),
     path('groups/<int:group_id>/change-teacher/', change_group_teacher, name='change_group_teacher'),
+    path('users/<int:user_id>/assign-groups/', assign_user_to_groups, name='assign_user_to_groups'),
 ]

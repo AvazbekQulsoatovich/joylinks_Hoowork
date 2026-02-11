@@ -15,17 +15,19 @@ class HomeworkForm(forms.ModelForm):
     
     class Meta:
         model = Homework
-        fields = ['group', 'title', 'description', 'deadline', 'sequence']
+        fields = ['group', 'title', 'description', 'file', 'deadline', 'sequence']
         widgets = {
             'group': forms.Select(attrs={'class': 'form-control'}),
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Vazifa sarlavhasi'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Vazifa tavsifi...'}),
+            'file': forms.FileInput(attrs={'class': 'form-control'}),
             'sequence': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
         labels = {
             'group': 'Guruh',
             'title': 'Sarlavha',
             'description': 'Tavsif',
+            'file': 'Fayl (ixtiyoriy, max 7MB)',
             'sequence': 'Tartib raqami',
         }
     

@@ -132,3 +132,21 @@ class ChangePasswordForm(forms.Form):
             raise forms.ValidationError("Parollar mos kelmadi!")
         
         return cleaned_data
+class ProfileUpdateForm(forms.ModelForm):
+    """Foydalanuvchining o'z profilini tahrirlash formasi"""
+    
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'first_name': 'Ism',
+            'last_name': 'Familiya',
+            'email': 'Email',
+            'phone': 'Telefon',
+        }

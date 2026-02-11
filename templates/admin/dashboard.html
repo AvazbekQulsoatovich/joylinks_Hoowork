@@ -1,183 +1,355 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Admin Dashboard - HooWork{% endblock %}
+{% block title %}Bosh sahifa - HooWork{% endblock %}
 
 {% block content %}
-<header class="page-header">
-    <div>
-        <h1 class="page-title">Admin Dashboard</h1>
-        <p class="page-subtitle">Xush kelibsiz, {{ user.get_full_name|default:user.username }}!</p>
+<!-- Header -->
+<div class="dashboard-header card mb-4">
+    <div class="greeting">
+        <h1>Assalomu alaykum, {{ user.first_name|default:user.username }}!</h1>
+        <p>Tizimdagi so'nggi ma'lumotlar:</p>
     </div>
-    <div style="display: flex; gap: 1rem;">
+    <div class="actions">
         {% if not is_moderator %}
-        <a href="{% url 'export_all' %}" class="btn btn-success">
-            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
-            Excel Yuklash
-        </a>
-        <a href="{% url 'user_create' %}" class="btn btn-primary">
-            <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
-            Yangi Foydalanuvchi
+        <a href="{% url 'homework_create' %}" class="btn btn-primary">
+            <i data-lucide="plus"></i> <span>Yangi vazifa</span>
         </a>
         {% endif %}
     </div>
-</header>
+</div>
 
 <!-- Stats Grid -->
-<div class="stats-grid">
+<div class="stats-grid mb-4">
     <div class="stat-card">
-        <div class="stat-value">{{ total_students }}</div>
-        <div class="stat-label">Jami Talabalar</div>
+        <div class="stat-card-icon primary"><i data-lucide="book-open"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_courses }}</div>
+            <div class="stat-label">Kurslar</div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ total_teachers }}</div>
-        <div class="stat-label">O'qituvchilar</div>
+        <div class="stat-card-icon secondary"><i data-lucide="users"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_groups }}</div>
+            <div class="stat-label">Guruhlar</div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ total_courses }}</div>
-        <div class="stat-label">Kurslar</div>
+        <div class="stat-card-icon accent"><i data-lucide="graduation-cap"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Talabalar</div>
+        </div>
     </div>
     <div class="stat-card">
-        <div class="stat-value">{{ total_groups }}</div>
-        <div class="stat-label">Guruhlar</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ avg_score }}%</div>
-        <div class="stat-label">O'rtacha O'zlashtirish</div>
+        <div class="stat-card-icon warning"><i data-lucide="user-check"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_teachers }}</div>
+            <div class="stat-label">Ustozlar</div>
+        </div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-    <!-- Kurslar Statistikasi -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Kurslar bo'yicha statistika</h3>
-            <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline">Barchasi</a>
-        </div>
-        {% if course_stats %}
-        <div class="table-container" style="box-shadow: none;">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Kurs</th>
-                        <th>Guruhlar</th>
-                        <th>Talabalar</th>
-                        <th>O'rtacha %</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stat in course_stats %}
-                    <tr>
-                        <td>
-                            <strong>{{ stat.course.name }}</strong>
-                        </td>
-                        <td>{{ stat.groups }}</td>
-                        <td>{{ stat.students }}</td>
-                        <td>
-                            <span
-                                class="badge {% if stat.avg_score >= 70 %}badge-success{% elif stat.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
-                                {{ stat.avg_score }}%
-                            </span>
-                        </td>
-                        <td>
-                            <a href="{% url 'course_detail' stat.course.pk %}" class="btn btn-sm btn-outline">
-                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <i data-lucide="book-open" style="width: 48px; height: 48px;"></i>
-            <h3>Kurslar yo'q</h3>
-            <p>Yangi kurs yaratishni boshlang</p>
-            <a href="{% url 'course_create' %}" class="btn btn-primary mt-2">Kurs yaratish</a>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Tezkor harakatlar -->
-    <div class="card">
-        <h3 class="card-title mb-3">Tezkor harakatlar</h3>
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            {% if not is_moderator %}
-            <a href="{% url 'user_create' %}" class="btn btn-primary" style="width: 100%;">
-                <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
-                Yangi foydalanuvchi
-            </a>
-            <a href="{% url 'course_create' %}" class="btn btn-secondary" style="width: 100%;">
-                <i data-lucide="book-plus" style="width: 18px; height: 18px;"></i>
-                Yangi kurs
-            </a>
-            <a href="{% url 'group_create' %}" class="btn btn-secondary" style="width: 100%;">
-                <i data-lucide="users-plus" style="width: 18px; height: 18px;"></i>
-                Yangi guruh
-            </a>
-            {% endif %}
-            <a href="{% url 'export_all' %}" class="btn btn-success" style="width: 100%;">
-                <i data-lucide="file-spreadsheet" style="width: 18px; height: 18px;"></i>
-                Hisobot yuklash (Excel)
-            </a>
-        </div>
-
-        <!-- So'nggi foydalanuvchilar -->
-        <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--gray-700);">So'nggi qo'shilganlar</h4>
-        {% for u in recent_users %}
-        <div class="list-item">
-            <div class="list-item-icon">
-                <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+<div class="dashboard-layout-grid">
+    <!-- Main Section -->
+    <div class="dashboard-main">
+        <!-- Recent Homeworks -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">So'nggi vazifalar</h3>
+                <a href="{% url 'homework_list' %}" class="btn-link">Barchasi <i data-lucide="chevron-right"></i></a>
             </div>
-            <div class="list-item-content">
-                <div class="list-item-title">{{ u.get_full_name|default:u.username }}</div>
-                <div class="list-item-subtitle">
-                    <span
-                        class="badge badge-{% if u.role == 'ADMIN' %}danger{% elif u.role == 'TEACHER' %}primary{% else %}success{% endif %}">
-                        {{ u.get_role_display }}
-                    </span>
+            <div class="list-container">
+                {% for homework in recent_homeworks %}
+                <div class="list-item-custom">
+                    <div class="item-header">
+                        <span class="item-title">{{ homework.title }}</span>
+                        <span
+                            class="badge {% if homework.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                            {{ homework.is_active|yesno:"Faol,Yakunlangan" }}
+                        </span>
+                    </div>
+                    <div class="item-details">
+                        {{ homework.group.name }} • {{ homework.deadline|date:"d.m, H:i" }}
+                    </div>
+                    <div class="item-progress">
+                        <div class="progress">
+                            <div class="progress-bar" style="width: {{ homework.submission_percent }}%"></div>
+                        </div>
+                        <span class="progress-text">{{ homework.submitted_count }}/{{ homework.total_students }}</span>
+                    </div>
                 </div>
+                {% empty %}
+                <div class="empty-state">Vazifalar yo'q.</div>
+                {% endfor %}
             </div>
         </div>
-        {% empty %}
-        <p class="text-muted">Hozircha yo'q</p>
-        {% endfor %}
+
+        <!-- Course Stats -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Kurslar statistikasi</h3>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Kurs</th>
+                            <th class="hide-mobile">Guruh</th>
+                            <th class="hide-mobile">Talaba</th>
+                            <th>O'rtacha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in course_stats %}
+                        <tr>
+                            <td><strong>{{ stat.course.name }}</strong></td>
+                            <td class="hide-mobile">{{ stat.groups }}</td>
+                            <td class="hide-mobile">{{ stat.students }}</td>
+                            <td>
+                                <span
+                                    class="badge {% if stat.avg_score >= 80 %}badge-success{% elif stat.avg_score >= 60 %}badge-warning{% else %}badge-danger{% endif %}">
+                                    {{ stat.avg_score|floatformat:0 }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Section -->
+    <div class="dashboard-sidebar">
+        <!-- Leaderboard -->
+        <div class="card mb-4">
+            <h3 class="card-title mb-3"><i data-lucide="trophy"></i> Top o'quvchilar</h3>
+            <div class="leaderboard">
+                {% for student in top_students %}
+                <div class="leaderboard-item">
+                    <div class="rank">{{ forloop.counter }}</div>
+                    <div class="details">
+                        <div class="name">{{ student.get_full_name|default:student.username }}</div>
+                        <div class="group-name">{{ student.group_name }}</div>
+                    </div>
+                    <div class="score">{{ student.avg_score|floatformat:0 }}%</div>
+                </div>
+                {% empty %}
+                <p class="text-center py-3 text-muted">Ma'lumot yo'q</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3 class="card-title mb-3">Tezkor amallar</h3>
+            <div class="quick-grid">
+                <a href="{% url 'user_list' %}?role=STUDENT" class="q-btn"><i
+                        data-lucide="users"></i><span>O'quvchilar</span></a>
+                <a href="{% url 'user_list' %}?role=TEACHER" class="q-btn"><i
+                        data-lucide="user-check"></i><span>Ustozlar</span></a>
+                <a href="{% url 'course_list' %}" class="q-btn"><i data-lucide="book-open"></i><span>Kurslar</span></a>
+                <a href="{% url 'group_list' %}" class="q-btn"><i
+                        data-lucide="layout-grid"></i><span>Guruhlar</span></a>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- So'nggi topshiriqlar -->
-<div class="card mt-3">
-    <div class="card-header">
-        <h3 class="card-title">So'nggi topshiriqlar</h3>
-        <a href="{% url 'teacher_submissions' %}" class="btn btn-sm btn-outline">Barchasi</a>
-    </div>
-    {% if recent_submissions %}
-    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-        {% for sub in recent_submissions %}
-        <div class="list-item">
-            <div class="list-item-icon"
-                style="background: {% if sub.is_graded %}var(--secondary-light){% else %}var(--warning-light){% endif %}; color: {% if sub.is_graded %}var(--secondary){% else %}var(--warning){% endif %};">
-                <i data-lucide="{% if sub.is_graded %}check-circle{% else %}clock{% endif %}"
-                    style="width: 20px; height: 20px;"></i>
-            </div>
-            <div class="list-item-content">
-                <div class="list-item-title">{{ sub.student.get_full_name|default:sub.student.username }}</div>
-                <div class="list-item-subtitle">{{ sub.homework.title }} • {{ sub.homework.group.name }}</div>
-            </div>
-            <div class="list-item-meta">
-                {% if sub.is_graded %}
-                <span class="badge badge-success">{{ sub.score_percent }}%</span>
-                {% else %}
-                <span class="badge badge-warning">Tekshirilmagan</span>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-muted">Hozircha topshiriqlar yo'q</p>
-    {% endif %}
-</div>
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--white);
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+    }
+
+    .dashboard-header p {
+        color: var(--text-muted);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-100);
+    }
+
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card-icon.primary {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .stat-card-icon.secondary {
+        background: var(--secondary-light);
+        color: var(--secondary);
+    }
+
+    .stat-card-icon.accent {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+
+    .stat-card-icon.warning {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    .dashboard-layout-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .list-item-custom {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .list-item-custom:last-child {
+        border-bottom: none;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .item-details {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .item-progress {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .item-progress .progress {
+        flex: 1;
+        height: 6px;
+    }
+
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-50);
+    }
+
+    .leaderboard-item:last-child {
+        border-bottom: none;
+    }
+
+    .rank {
+        width: 24px;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+
+    .leaderboard-item .details {
+        flex: 1;
+    }
+
+    .leaderboard-item .name {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .leaderboard-item .group-name {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .leaderboard-item .score {
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .q-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        background: var(--gray-50);
+        border-radius: var(--radius);
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .q-btn:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-layout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hide-mobile {
+            display: none;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .dashboard-header .btn {
+            width: 100%;
+        }
+    }
+</style>
 {% endblock %}

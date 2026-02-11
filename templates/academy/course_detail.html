@@ -51,8 +51,7 @@
                             <td>{{ group.students.count }}</td>
                             <td>
                                 {% for teacher in group.teachers.all %}
-                                <span class="badge badge-primary">{{ teacher.get_full_name|default:teacher.username
-                                    }}</span>
+                                <span class="badge badge-primary">{{teacher.get_full_name|default:teacher.username}}</span>
                                 {% empty %}
                                 <span class="text-muted">Biriktirilmagan</span>
                                 {% endfor %}

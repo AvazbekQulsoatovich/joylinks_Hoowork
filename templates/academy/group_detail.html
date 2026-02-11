@@ -12,13 +12,13 @@
         <h1 class="page-title">{{ group.name }}</h1>
         <p class="page-subtitle">{{ group.course.name }} kursi</p>
     </div>
-    {% if user.role == 'ADMIN' %}
-    <div style="display: flex; gap: 1rem;">
+    {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+    <div class="header-actions">
         <a href="{% url 'group_update' group.pk %}" class="btn btn-secondary">
-            <i data-lucide="edit" style="width: 18px; height: 18px;"></i> Tahrirlash
+            <i data-lucide="edit"></i> <span>Tahrirlash</span>
         </a>
         <a href="{% url 'add_students_to_group' group.pk %}" class="btn btn-primary">
-            <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i> Talaba Qo'shish
+            <i data-lucide="user-plus"></i> <span>Talaba Qo'shish</span>
         </a>
     </div>
     {% endif %}
@@ -39,13 +39,13 @@
                     <thead>
                         <tr>
                             <th>F.I.Sh</th>
-                            <th>Username</th>
+                            <th class="hide-mobile">Username</th>
                             {% if user.role != 'STUDENT' %}
-                            <th>O'rtacha %</th>
-                            <th>Topshirgan</th>
+                            <th>Ball</th>
+                            <th class="hide-mobile">Topshirgan</th>
                             {% endif %}
                             {% if user.role == 'ADMIN' %}
-                            <th></th>
+                            <th style="width: 50px;"></th>
                             {% endif %}
                         </tr>
                     </thead>
@@ -54,21 +54,21 @@
                         {% for s in student_stats %}
                         <tr>
                             <td><strong>{{ s.student.get_full_name|default:s.student.username }}</strong></td>
-                            <td class="text-muted">{{ s.student.username }}</td>
+                            <td class="text-muted hide-mobile">{{ s.student.username }}</td>
                             <td>
                                 <span
                                     class="badge {% if s.avg_score >= 80 %}badge-success{% elif s.avg_score >= 60 %}badge-warning{% else %}badge-danger{% endif %}">
                                     {{ s.avg_score }}%
                                 </span>
                             </td>
-                            <td>{{ s.submitted }}/{{ s.total }}</td>
+                            <td class="hide-mobile">{{ s.submitted }}/{{ s.total }}</td>
                             {% if user.role == 'ADMIN' %}
                             <td>
                                 <form action="{% url 'remove_student_from_group' group.pk s.student.pk %}" method="post"
                                     onsubmit="return confirm('Talabani guruhdan chiqarishni tasdiqlaysizmi?')">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline" style="color: var(--danger);">
-                                        <i data-lucide="user-minus" style="width: 14px; height: 14px;"></i>
+                                    <button type="submit" class="btn btn-sm btn-outline text-danger">
+                                        <i data-lucide="user-minus"></i>
                                     </button>
                                 </form>
                             </td>
@@ -197,6 +197,32 @@
         {% endif %}
     </div>
 </div>
+
+<style>
+    @media (max-width: 900px) {
+        .dashboard-layout>div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .hide-mobile {
+            display: none !important;
+        }
+
+        .header-actions {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .header-actions .btn {
+            padding: 0.6rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    }
+</style>
 
 <!-- Change Teacher Partial Hidden (Logic simplified) -->
 <div id="change-teacher-modal"

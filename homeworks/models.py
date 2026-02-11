@@ -2,9 +2,22 @@ from django.db import models
 from django.conf import settings
 from academy.models import Group
 
+from django.core.exceptions import ValidationError
+
+def validate_file_size_7mb(value):
+    limit = 7 * 1024 * 1024
+    if value.size > limit:
+        raise ValidationError('Fayl hajmi 7MB dan oshmasligi kerak.')
+
+def validate_file_size_5mb(value):
+    limit = 5 * 1024 * 1024
+    if value.size > limit:
+        raise ValidationError('Fayl hajmi 5MB dan oshmasligi kerak.')
+
 class Homework(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
+    file = models.FileField(upload_to='homework_files/', blank=True, null=True, validators=[validate_file_size_7mb])
     deadline = models.DateTimeField()
     max_score = models.IntegerField(default=100)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='homeworks')
@@ -31,7 +44,7 @@ class Submission(models.Model):
         related_name='submissions'
     )
     content = models.TextField(blank=True)
-    file = models.FileField(upload_to='submissions/', blank=True, null=True)
+    file = models.FileField(upload_to='submissions/', blank=True, null=True, validators=[validate_file_size_5mb])
     is_code = models.BooleanField(default=False, verbose_name="Kod sifatida topshirilgan")
     code_language = models.CharField(max_length=50, blank=True, default='python')
     score_percent = models.IntegerField(default=0)

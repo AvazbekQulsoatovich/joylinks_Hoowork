@@ -12,6 +12,7 @@ urlpatterns = [
     
     # Direct access views
     path('login/', login_view, name='login'),
+    path('accounts/login/', login_view), # Handle default Django redirect
     path('logout/', logout_view, name='logout'),
     path('student/', student_dashboard, name='student_dashboard'),
     path('teacher/', teacher_dashboard, name='teacher_dashboard'),

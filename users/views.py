@@ -11,7 +11,7 @@ from homeworks.models import Homework, Submission, Notification
 from homeworks.utils import auto_grade_missed_homeworks
 from academy.models import Course, Group
 from .models import User
-from .forms import UserForm, UserUpdateForm, ChangePasswordForm
+from .forms import UserForm, UserUpdateForm, ChangePasswordForm, ProfileUpdateForm
 
 
 # ============== AUTHENTICATION ==============
@@ -29,13 +29,43 @@ def login_view(request):
         user = authenticate(username=username, password=password)
         if user:
             if not user.is_active:
-                error = "Sizning hisobingiz bloklangan. Admin bilan bog'laning."
+                if user.role == 'STUDENT':
+                    group = user.study_groups.first()
+                    group_name = group.name if group else "Guruhsiz"
+                    full_name = user.get_full_name() or user.username
+                    error = f"Hurmatli {full_name}, siz {group_name} guruhidasiz. Iltimos, shu oy uchun to'lovni amalga oshiring. To'lov qilganingizdan so'ng tizimga kira olasiz."
+                else:
+                    error = "Sizning hisobingiz bloklangan. Admin bilan bog'laning."
             else:
                 login(request, user)
                 messages.success(request, f"Xush kelibsiz, {user.get_full_name() or user.username}!")
                 return redirect_by_role(user)
         else:
-            error = "Noto'g'ri foydalanuvchi nomi yoki parol."
+            # Check if username exists but password might be wrong, OR if user exists but is inactive and authenticate failed?
+            # Actually authenticate() returns None if is_active=False in some Django versions? 
+            # Default ModelBackend rejects inactive users? 
+            # Let's check if user exists to give better error if needed, but for security generic is better.
+            # However, the requirement is specific: "login parolini teradi ammo kira olmaydi va unga eslatadi..."
+            # If ModelBackend rejects inactive users, authenticate returns None.
+            # We need to manually check.
+            try:
+                u = User.objects.get(username=username)
+                if u.check_password(password):
+                    if not u.is_active:
+                        if u.role == 'STUDENT':
+                            group = u.study_groups.first()
+                            group_name = group.name if group else "Guruhsiz"
+                            full_name = u.get_full_name() or u.username
+                            error = f"Hurmatli {full_name}, siz {group_name} guruhidasiz. Iltimos, shu oy uchun to'lovni amalga oshiring. To'lov qilganingizdan so'ng tizimga kira olasiz."
+                        else:
+                            error = "Sizning hisobingiz bloklangan. Admin bilan bog'laning."
+                    else:
+                         # Should have been authenticated... weird case
+                        error = "Tizim xatosi. Qaytadan urining."
+                else:
+                    error = "Noto'g'ri foydalanuvchi nomi yoki parol."
+            except User.DoesNotExist:
+                error = "Noto'g'ri foydalanuvchi nomi yoki parol."
     
     return render(request, 'auth/login.html', {'error': error})
 
@@ -188,6 +218,47 @@ def admin_dashboard(request):
             'avg_score': round(course_avg, 1)
         })
     
+    # So'nggi uyga vazifalar
+    from django.utils import timezone
+    recent_homeworks = []
+    homeworks = Homework.objects.select_related('group', 'group__course').order_by('-created_at')[:5]
+    for hw in homeworks:
+        total_students_hw = hw.group.students.count()
+        submitted_count = hw.submissions.count()
+        submission_percent = (submitted_count / total_students_hw * 100) if total_students_hw > 0 else 0
+        is_active = hw.deadline > timezone.now()
+        recent_homeworks.append({
+            'id': hw.id,
+            'title': hw.title,
+            'group': hw.group,
+            'deadline': hw.deadline,
+            'is_active': is_active,
+            'total_students': total_students_hw,
+            'submitted_count': submitted_count,
+            'submission_percent': round(submission_percent),
+        })
+    
+    # Top o'quvchilar (eng yuqori o'rtacha ball)
+    top_students = []
+    students = User.objects.filter(role='STUDENT', is_active=True)
+    for student in students:
+        subs = Submission.objects.filter(student=student, is_graded=True)
+        if subs.exists():
+            avg = subs.aggregate(avg=Avg('score_percent'))['avg'] or 0
+            # Guruh nomini olish
+            group = student.study_groups.first()
+            group_name = group.name if group else None
+            top_students.append({
+                'id': student.id,
+                'username': student.username,
+                'first_name': student.first_name,
+                'last_name': student.last_name,
+                'avg_score': avg,
+                'group_name': group_name,
+                'get_full_name': student.get_full_name,
+            })
+    top_students = sorted(top_students, key=lambda x: x['avg_score'], reverse=True)[:5]
+    
     # So'nggi foydalanuvchilar
     recent_users = User.objects.order_by('-date_joined')[:5]
     
@@ -196,6 +267,9 @@ def admin_dashboard(request):
         'student', 'homework'
     ).order_by('-submitted_at')[:5]
     
+    # O'qilmagan bildirishnomalar soni
+    unread_count = Notification.objects.filter(user=user, is_read=False).count()
+    
     return render(request, 'admin/dashboard.html', {
         'total_students': total_students,
         'total_teachers': total_teachers,
@@ -203,9 +277,12 @@ def admin_dashboard(request):
         'total_groups': total_groups,
         'avg_score': round(avg_score, 1),
         'course_stats': course_stats,
+        'recent_homeworks': recent_homeworks,
+        'top_students': top_students,
         'recent_users': recent_users,
         'recent_submissions': recent_submissions,
-        'is_moderator': user.role == 'MODERATOR'
+        'is_moderator': user.role == 'MODERATOR',
+        'unread_count': unread_count,
     })
 
 
@@ -223,7 +300,7 @@ class UserListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
     context_object_name = 'users'
     
     def get_queryset(self):
-        queryset = User.objects.all().order_by('role', 'last_name', 'first_name')
+        queryset = User.objects.all().order_by('role', 'last_name', 'first_name').prefetch_related('study_groups')
         
         # Filtrlash
         role = self.request.GET.get('role')
@@ -345,7 +422,7 @@ def change_user_password(request, user_id):
 
 
 class UserDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
-    """Foydalanuvchi profili"""
+    """Foydalanuvchi profili (Admin uchun)"""
     model = User
     template_name = 'users/user_detail.html'
     context_object_name = 'target_user'
@@ -364,3 +441,39 @@ class UserDetailView(LoginRequiredMixin, AdminRequiredMixin, DetailView):
             context['homework_count'] = Homework.objects.filter(created_by=user).count()
         
         return context
+
+
+@login_required
+def profile_view(request):
+    """Foydalanuvchining o'z profili"""
+    user = request.user
+    context = {
+        'target_user': user,
+        'is_own_profile': True
+    }
+    
+    if user.role == 'STUDENT':
+        context['groups'] = user.study_groups.all()
+        subs = Submission.objects.filter(student=user, is_graded=True)
+        context['avg_score'] = subs.aggregate(avg=Avg('score_percent'))['avg'] or 0
+        context['submission_count'] = subs.count()
+    elif user.role == 'TEACHER':
+        context['groups'] = user.teaching_groups.all()
+        context['homework_count'] = Homework.objects.filter(created_by=user).count()
+        
+    return render(request, 'users/profile_detail.html', context)
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """Foydalanuvchining o'z profilini tahrirlashi"""
+    model = User
+    form_class = ProfileUpdateForm
+    template_name = 'users/profile_form.html'
+    success_url = reverse_lazy('profile')
+    
+    def get_object(self, queryset=None):
+        return self.request.user
+    
+    def form_valid(self, form):
+        messages.success(self.request, "Profilingiz yangilandi!")
+        return super().form_valid(form)

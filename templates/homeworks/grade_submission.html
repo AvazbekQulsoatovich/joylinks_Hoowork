@@ -67,8 +67,7 @@
                         {{ form.score_percent }}
                         <span style="font-size: 1.5rem; font-weight: 700; color: var(--gray-400);">%</span>
                     </div>
-                    {% if form.score_percent.errors %}<small class="text-danger">{{ form.score_percent.errors.0
-                        }}</small>{% endif %}
+                    {% if form.score_percent.errors %}<small class="text-danger">{{form.score_percent.errors.0}}</small>{% endif %}
                 </div>
 
                 <div class="form-group">
