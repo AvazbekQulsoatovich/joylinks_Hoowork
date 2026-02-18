@@ -198,6 +198,18 @@ class SubmissionCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ('homework', 'text_answer', 'code_answer', 'file')
+    
+    def validate_file(self, value):
+        """5MB dan katta bo'lgan faylni qabul qilmaslik"""
+        if value:
+            max_size = 5 * 1024 * 1024  # 5 MB
+            if value.size > max_size:
+                raise serializers.ValidationError(
+                    "5 MB dan katta faylni yuklay olmaysiz. Fayl hajmi: {:.2f} MB".format(
+                        value.size / (1024 * 1024)
+                    )
+                )
+        return value
 
 
 class SubmissionGradeSerializer(serializers.ModelSerializer):
