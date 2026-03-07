@@ -1,0 +1,52 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Bildirishnomalar - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Bildirishnomalar</h1>
+        <p class="page-subtitle">Barcha xabarlar va ogohlantirishlar</p>
+    </div>
+</header>
+
+<div class="card">
+    {% if notifications %}
+    <div style="display: flex; flex-direction: column;">
+        {% for notif in notifications %}
+        <div class="list-item"
+            style="padding: 1.5rem; border-bottom: 1px solid var(--gray-100); margin-bottom: 0; border-radius: 0; {% if not notif.is_read %}background: var(--primary-light);{% endif %}">
+            <div class="list-item-icon"
+                style="background: {% if notif.notification_type == 'DEADLINE' %}var(--warning-light){% elif notif.notification_type == 'GRADED' %}var(--secondary-light){% else %}var(--info-light){% endif %}; color: {% if notif.notification_type == 'DEADLINE' %}var(--warning){% elif notif.notification_type == 'GRADED' %}var(--secondary){% else %}var(--info){% endif %};">
+                <i
+                    data-lucide="{% if notif.notification_type == 'DEADLINE' %}clock{% elif notif.notification_type == 'GRADED' %}check-circle{% else %}bell{% endif %}"></i>
+            </div>
+            <div class="list-item-content">
+                <div class="list-item-title" style="font-size: 1.125rem;">{{ notif.title }}</div>
+                <div class="mb-1" style="color: var(--gray-700);">{{ notif.message }}</div>
+                <div class="list-item-meta">{{ notif.created_at|date:"d.m.Y H:i" }} ({{ notif.created_at|timesince }}
+                    oldin)</div>
+            </div>
+            <div>
+                {% if not notif.is_read %}
+                <a href="{% url 'mark_notification_read' notif.pk %}" class="btn btn-sm btn-primary">
+                    Ko'rilgan
+                </a>
+                {% elif notif.related_homework %}
+                <a href="{% url 'homework_detail' notif.related_homework.pk %}" class="btn btn-sm btn-outline">
+                    O'tish
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i data-lucide="bell-off" style="width: 64px; height: 64px;"></i>
+        <h3>Hozircha bildirishnomalar yo'q</h3>
+        <p>Barcha xabarlar shu yerda ko'rinadi</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

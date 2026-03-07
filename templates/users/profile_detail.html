@@ -1,0 +1,120 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Profil - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header glass-card mb-4">
+    <div class="header-content">
+        <h1 class="page-title"
+            style="background: var(--primary-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+            Mening Profilim</h1>
+        <p class="page-subtitle">Shaxsiy ma'lumotlaringiz va statistikangiz</p>
+    </div>
+    <div class="header-actions">
+        <a href="{% url 'profile_edit' %}" class="btn btn-primary btn-glow">
+            <i data-lucide="edit-3"></i> Tahrirlash
+        </a>
+    </div>
+</header>
+
+<div class="profile-layout">
+    <!-- User Card -->
+    <div class="profile-main">
+        <div class="card glass-card text-center py-5">
+            <div class="profile-avatar-large mb-4">
+                {% if target_user.first_name %}
+                {{ target_user.first_name|first|upper }}{{ target_user.last_name|first|upper }}
+                {% else %}
+                {{ target_user.username|first|upper }}
+                {% endif %}
+            </div>
+            <h2 class="user-fullname">{{ target_user.get_full_name|default:target_user.username }}</h2>
+            <div class="user-role-badge mt-2">{{ target_user.get_role_display }}</div>
+
+            <div class="profile-stats-row mt-5">
+                {% if target_user.role == 'STUDENT' %}
+                <div class="p-stat">
+                    <span class="p-stat-value">{{ avg_score|floatformat:0 }}%</span>
+                    <span class="p-stat-label">O'rtacha ball</span>
+                </div>
+                <div class="p-stat">
+                    <span class="p-stat-value">{{ submission_count }}</span>
+                    <span class="p-stat-label">Vazifalar</span>
+                </div>
+                {% elif target_user.role == 'TEACHER' %}
+                <div class="p-stat">
+                    <span class="p-stat-value">{{ homework_count }}</span>
+                    <span class="p-stat-label">Yaratilgan vazifalar</span>
+                </div>
+                <div class="p-stat">
+                    <span class="p-stat-value">{{ groups.count }}</span>
+                    <span class="p-stat-label">Guruhlar</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card glass-card mt-4">
+            <h3 class="card-title mb-4">Aloqa ma'lumotlari</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ target_user.email|default:"Kiritilmagan" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Telefon</div>
+                    <div class="info-value">{{ target_user.phone|default:"Kiritilmagan" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Foydalanuvchi nomi</div>
+                    <div class="info-value">@{{ target_user.username }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Ro'yxatdan o'tilgan</div>
+                    <div class="info-value">{{ target_user.date_joined|date:"d M Y" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Content -->
+    <div class="profile-side">
+        <div class="card glass-card">
+            <h3 class="card-title mb-4">Guruhlar</h3>
+            {% if groups %}
+            <div class="groups-mini-list">
+                {% for group in groups %}
+                <div class="group-mini-item">
+                    <div class="group-mini-icon">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="group-mini-info">
+                        <div class="group-mini-name">{{ group.name }}</div>
+                        <div class="group-mini-course">{{ group.course.name }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">Hozircha guruhlar yo'q</p>
+            {% endif %}
+        </div>
+
+        <div class="card glass-card mt-4">
+            <h3 class="card-title mb-3">Xavfsizlik</h3>
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-block">
+                <i data-lucide="log-out"></i> Tizimdan chiqish
+            </a>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Mobile Logout Action -->
+<div class="mobile-logout-only mt-4 mb-5" style="display: none;">
+    <a href="{% url 'logout' %}" class="btn btn-danger btn-block py-3">
+        <i data-lucide="log-out"></i> Tizimdan chiqish
+    </a>
+</div>
+
+{% endblock %}

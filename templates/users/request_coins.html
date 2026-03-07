@@ -1,0 +1,29 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Tanga so'rovi{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Adminga tanga talab qilmoqchiman</h2>
+    </div>
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <p>Sizning balansingiz: <strong>{{ user.display_coin_balance }} tanga</strong></p>
+        {% if user.display_coin_balance <= 0 %}
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Tangam kam, adminga murojaat qilish</button>
+            </form>
+        {% else %}
+            <p>Hozircha tanga yetarli, murojaat qilish shart emas.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

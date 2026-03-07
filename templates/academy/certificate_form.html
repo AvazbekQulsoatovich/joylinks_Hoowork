@@ -1,0 +1,228 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Sertifikat Yuklash - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <a href="{% url 'certificate_list' %}" class="back-link">
+            <i data-lucide="arrow-left"></i> Orqaga qaytish
+        </a>
+        <h1 class="page-title">{{ student.get_full_name|default:student.username }} uchun yangi sertifikat</h1>
+    </div>
+</header>
+
+<div class="form-container-centered">
+    <div class="card premium-form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-section">
+                <div class="section-icon">
+                    <i data-lucide="book-open"></i>
+                </div>
+                <div class="form-group">
+                    <label class="form-label-premium">{{ form.course.label }}</label>
+                    <div class="select-wrapper-premium">
+                        {{ form.course }}
+                    </div>
+                    {% if form.course.errors %}
+                    <div class="error-msg">{{ form.course.errors.0 }}</div>
+                    {% endif %}
+                    <small class="helper-text">Bitirilgan kursni tanlang</small>
+                </div>
+            </div>
+
+            <div class="form-section mt-4">
+                <div class="section-icon">
+                    <i data-lucide="file-up"></i>
+                </div>
+                <div class="form-group">
+                    <label class="form-label-premium">{{ form.file.label }}</label>
+                    <div class="file-input-wrapper-premium">
+                        {{ form.file }}
+                        <div class="file-custom-ui">
+                            <i data-lucide="upload-cloud"></i>
+                            <span>Faylni tanlang (PDF, JPG, PNG)</span>
+                        </div>
+                    </div>
+                    {% if form.file.errors %}
+                    <div class="error-msg">{{ form.file.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions-premium mt-5">
+                <button type="submit" class="btn btn-primary btn-lg btn-block-mobile">
+                    <i data-lucide="check"></i> Tasdiqlash va yuklash
+                </button>
+                <a href="{% url 'certificate_list' %}" class="btn btn-secondary btn-lg btn-block-mobile">Bekor
+                    qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--primary);
+    }
+
+    .form-container-centered {
+        display: flex;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .premium-form-card {
+        max-width: 550px;
+        width: 100%;
+        padding: 2.5rem;
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-section {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .section-icon {
+        width: 48px;
+        height: 48px;
+        background: #f8fafc;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        flex-shrink: 0;
+    }
+
+    .form-group {
+        flex-grow: 1;
+    }
+
+    .form-label-premium {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+        font-size: 0.95rem;
+    }
+
+    .select-wrapper-premium select,
+    .file-input-wrapper-premium input {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .select-wrapper-premium select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px var(--primary-light);
+        outline: none;
+    }
+
+    .file-input-wrapper-premium {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-input-wrapper-premium input {
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        cursor: pointer;
+    }
+
+    .file-custom-ui {
+        background: #f8fafc;
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem 1rem;
+        text-align: center;
+        color: #64748b;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .file-input-wrapper-premium:hover .file-custom-ui {
+        border-color: var(--primary);
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .helper-text {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 0.4rem;
+    }
+
+    .error-msg {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.4rem;
+        font-weight: 600;
+    }
+
+    .form-actions-premium {
+        display: flex;
+        gap: 1rem;
+    }
+
+    @media (max-width: 480px) {
+        .form-actions-premium {
+            flex-direction: column;
+        }
+
+        .btn-block-mobile {
+            width: 100%;
+        }
+
+        .premium-form-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.querySelector('input[type="file"]');
+        const customUI = document.querySelector('.file-custom-ui span');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                if (this.files && this.files.length > 0) {
+                    customUI.textContent = this.files[0].name;
+                    customUI.style.color = 'var(--primary)';
+                    customUI.style.fontWeight = '600';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

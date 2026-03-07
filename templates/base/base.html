@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#16a085">
+  <meta name="description" content="HooWork - Joylinks IT Academy Uyga Vazifa Tizimi">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/img/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>{% block title %}HooWork{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/static/js/pwa.js" defer></script>
+</head>
+
+<body>
+  {% if user.is_authenticated %}
+  <div class="dashboard-layout">
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <a href="/" class="sidebar-logo" style="margin-bottom: 0;">
+        <div class="sidebar-logo-icon" style="background: transparent; width: auto; height: 45px;">
+          <img src="/static/img/logo.png" alt="Joylinks Logo" style="height: 100%; width: auto;">
+        </div>
+      </a>
+      <div class="mobile-header-actions">
+        {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+        <a href="{% url 'admin_dashboard' %}" class="mobile-action-btn">
+          <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+        </a>
+        {% endif %}
+        <a href="{% url 'profile' %}" class="sidebar-user-avatar"
+          style="width: 36px; height: 36px; font-size: 0.8rem; text-decoration: none;">
+          {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+        </a>
+      </div>
+    </header>
+
+    <!-- Mobile Bottom Navigation (Simplified) -->
+    <nav class="mobile-bottom-nav">
+      <a href="{% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+        class="mobile-nav-item {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'teacher_dashboard' or request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Asosiy</span>
+      </a>
+
+      <a href="{% url 'homework_list' %}" class="mobile-nav-item {% if 'homework' in request.path %}active{% endif %}">
+        <i data-lucide="file-text"></i>
+        <span>Vazifalar</span>
+      </a>
+
+      <a href="{% url 'course_list' %}" class="mobile-nav-item {% if 'course' in request.path %}active{% endif %}">
+        <i data-lucide="book-open"></i>
+        <span>Kurslar</span>
+      </a>
+
+      <a href="{% url 'notifications' %}"
+        class="mobile-nav-item {% if 'notifications' in request.path %}active{% endif %}">
+        <div class="nav-icon-wrapper">
+          <i data-lucide="bell"></i>
+          {% if user.unread_notifications_count > 0 %}
+          <span class="nav-badge-mobile">{{ user.unread_notifications_count }}</span>
+          {% endif %}
+        </div>
+        <span>Xabarlar</span>
+      </a>
+
+      <a href="javascript:void(0)" class="mobile-nav-item" id="mobile-menu-trigger">
+        <i data-lucide="menu"></i>
+        <span>Barchasi</span>
+      </a>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay">
+      <div class="mobile-menu-content glass-card">
+        <div class="mobile-menu-header">
+          <div class="mobile-menu-title">Barcha bo'limlar</div>
+          <button class="menu-close-btn" id="mobile-menu-close">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="mobile-menu-grid">
+          <a href="{% url 'group_list' %}" class="menu-grid-item {% if 'group' in request.path %}active{% endif %}">
+            <div class="menu-grid-icon"><i data-lucide="users"></i></div>
+            <span>Guruhlar</span>
+          </a>
+
+          <a href="{% url 'student_market' %}"
+            class="menu-grid-item {% if 'market' in request.path %}active{% endif %}">
+            <div class="menu-grid-icon"><i data-lucide="shopping-bag"></i></div>
+            <span>Market</span>
+          </a>
+
+          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          <a href="{% url 'market_product_list' %}"
+            class="menu-grid-item {% if 'market/admin' in request.path %}active{% endif %}">
+            <div class="menu-grid-icon"><i data-lucide="shopping-basket"></i></div>
+            <span>Market Admin</span>
+          </a>
+          <a href="{% url 'user_list' %}?role=STUDENT" class="menu-grid-item">
+            <div class="menu-grid-icon"><i data-lucide="graduation-cap"></i></div>
+            <span>O'quvchilar</span>
+          </a>
+          {% endif %}
+
+          <a href="{% url 'student_certificates' %}"
+            class="menu-grid-item {% if 'my-certificates' in request.path %}active{% endif %}">
+            <div class="menu-grid-icon"><i data-lucide="award"></i></div>
+            <span>Sertifikatlar</span>
+          </a>
+
+          <a href="{% url 'settings' %}" class="menu-grid-item {% if 'settings' in request.path %}active{% endif %}">
+            <div class="menu-grid-icon"><i data-lucide="settings"></i></div>
+            <span>Sozlamalar</span>
+          </a>
+
+          <a href="{% url 'profile' %}" class="menu-grid-item">
+            <div class="menu-grid-icon"><i data-lucide="user"></i></div>
+            <span>Profil</span>
+          </a>
+        </div>
+
+        <div class="mobile-menu-footer">
+          <a href="{% url 'logout' %}" class="btn btn-outline btn-danger-text w-100"
+            style="justify-content: center; gap: 0.5rem;">
+            <i data-lucide="log-out" style="width: 18px; height: 18px;"></i>
+            <span>Chiqish</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <!-- Logo -->
+      <div class="sidebar-logo" style="margin-bottom: 2rem;">
+        <div class="sidebar-logo-icon" style="background: transparent; width: auto; height: 60px;">
+          <img src="/static/img/logo.png" alt="Joylinks Logo" style="height: 100%; width: auto;">
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav>
+        <ul>
+          <li>
+            <a href="{% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+              class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'teacher_dashboard' or request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+              <i data-lucide="layout-dashboard"></i> <span class="nav-text">Bosh sahifa</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'notifications' %}"
+              class="nav-link {% if 'notifications' in request.path %}active{% endif %}">
+              <i data-lucide="bell"></i>
+              <span class="nav-text">Bildirishnomalar</span>
+              {% if user.unread_notifications_count > 0 %}
+              <span class="nav-badge">{{ user.unread_notifications_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'course_list' %}" class="nav-link {% if 'course' in request.path %}active{% endif %}">
+              <i data-lucide="book-open"></i> <span class="nav-text">Kurslar</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'group_list' %}" class="nav-link {% if 'group' in request.path %}active{% endif %}">
+              <i data-lucide="users"></i> <span class="nav-text">Guruhlar</span>
+            </a>
+          </li>
+          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          <li>
+            <a href="{% url 'user_list' %}?role=STUDENT"
+              class="nav-link {% if 'users' in request.path and 'STUDENT' in request.GET.role %}active{% endif %}">
+              <i data-lucide="graduation-cap"></i> <span class="nav-text">O'quvchilar</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'user_list' %}?role=TEACHER"
+              class="nav-link {% if 'users' in request.path and 'TEACHER' in request.GET.role %}active{% endif %}">
+              <i data-lucide="user-check"></i> <span class="nav-text">O'qituvchilar</span>
+            </a>
+          </li>
+          {% endif %}
+          <li>
+            <a href="{% url 'homework_list' %}" class="nav-link {% if 'homework' in request.path %}active{% endif %}">
+              <i data-lucide="file-text"></i> <span class="nav-text">Uyga vazifalar</span>
+            </a>
+          </li>
+          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          <li>
+            <a href="{% url 'statistics' %}" class="nav-link {% if 'statistics' in request.path %}active{% endif %}">
+              <i data-lucide="bar-chart-3"></i> <span class="nav-text">Statistika</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'export_all' %}" class="nav-link">
+              <i data-lucide="download"></i> <span class="nav-text">Excel export</span>
+            </a>
+          </li>
+          {% endif %}
+          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          <li>
+            <a href="{% url 'certificate_list' %}"
+              class="nav-link {% if 'certificates' in request.path and 'my-certificates' not in request.path %}active{% endif %}">
+              <i data-lucide="award"></i> <span class="nav-text">Sertifikatlar</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'market_product_list' %}"
+              class="nav-link {% if 'market/admin' in request.path %}active{% endif %}">
+              <i data-lucide="shopping-basket"></i> <span class="nav-text">Market (admin)</span>
+            </a>
+          </li>
+          {% endif %}
+
+          <li>
+            <a href="{% url 'student_coins' %}" class="nav-link {% if 'my-coins' in request.path %}active{% endif %}">
+              <i data-lucide="coins"></i> <span class="nav-text">Mening tangalarim</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{% url 'student_certificates' %}"
+              class="nav-link {% if 'my-certificates' in request.path %}active{% endif %}">
+              <i data-lucide="award"></i> <span class="nav-text">Mening sertifikatlarim</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{% url 'student_market' %}"
+              class="nav-link {% if 'market' in request.path and 'market/admin' not in request.path %}active{% endif %}">
+              <i data-lucide="shopping-bag"></i> <span class="nav-text">Market</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="{% url 'settings' %}" class="nav-link {% if 'settings' in request.path %}active{% endif %}">
+              <i data-lucide="settings"></i> <span class="nav-text">Sozlamalar</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- User Info -->
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">
+          {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+        </div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="sidebar-user-role">{{ user.get_role_display }}</div>
+        </div>
+      </div>
+
+      <a href="{% url 'logout' %}" class="nav-link logout" style="margin-top: 0.5rem;">
+        <i data-lucide="log-out"></i> <span class="nav-text">Chiqish</span>
+      </a>
+    </aside>
+
+    <main class="main-content">
+      {% if messages %}
+      <div class="messages-container" style="padding: 1rem 1.5rem 0;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="margin-bottom: 0.5rem;">
+          <i
+            data-lucide="{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}alert-circle{% elif message.tags == 'warning' %}alert-triangle{% else %}info{% endif %}"></i>
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% else %}
+  {% block public_content %}{% endblock %}
+  {% endif %}
+
+  <!-- Global iOS Install Modal -->
+  <div id="ios-install-modal" class="modal-overlay"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(8px);">
+    <div class="modal-content glass-card"
+      style="max-width: 380px; width: 100%; padding: 2rem; position: relative; background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <div
+          style="width: 60px; height: 60px; background: #007AFF; color: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+          <i data-lucide="apple" style="width: 32px; height: 32px;"></i>
+        </div>
+        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: #1d1d1f;">iPhone ga o'rnatish</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Apple talabi bo'yicha o'rnatish
+          faqat <b>Safari</b> brauzerida qo'lda bajariladi.</p>
+      </div>
+
+      <div style="background: #f5f5f7; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <ol style="text-align: left; padding-left: 1.25rem; margin: 0; color: #1d1d1f; font-weight: 500;">
+          <li style="margin-bottom: 1rem;">Safari'da pastdagi <img
+              src="https://developer.apple.com/design/human-interface-guidelines/foundations/images/icons/sharing/share_ios.png"
+              style="height: 20px; vertical-align: middle;"> (Share) tugmasini bosing</li>
+          <li style="margin-bottom: 1rem;">Menyuni surib <b>"Add to Home Screen"</b> bandini tanlang</li>
+          <li style="margin-bottom: 0;">O'ng yuqoridagi <b>"Add"</b> tugmasini bosing</li>
+        </ol>
+      </div>
+
+      <button class="btn btn-primary close-modal"
+        style="width: 100%; height: 50px; border-radius: 12px; font-weight: 700;">Tushunarli</button>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/static/sw.js')
+          .then(function (registration) {
+            console.log('ServiceWorker registered:', registration.scope);
+          })
+          .catch(function (error) {
+            console.log('ServiceWorker registration failed:', error);
+          });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Generic click handler for data-href
+      document.querySelectorAll('[data-href]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          window.location.href = this.dataset.href;
+        });
+      });
+
+      // Mobile Menu Logic
+      const menuTrigger = document.getElementById('mobile-menu-trigger');
+      const menuOverlay = document.getElementById('mobile-menu-overlay');
+      const menuClose = document.getElementById('mobile-menu-close');
+
+      if (menuTrigger && menuOverlay) {
+        menuTrigger.addEventListener('click', function () {
+          menuOverlay.classList.add('active');
+          document.body.style.overflow = 'hidden'; // Prevent scrolling
+        });
+
+        const closeMenu = function () {
+          menuOverlay.classList.remove('active');
+          document.body.style.overflow = '';
+        };
+
+        if (menuClose) {
+          menuClose.addEventListener('click', closeMenu);
+        }
+
+        menuOverlay.addEventListener('click', function (e) {
+          if (e.target === menuOverlay) {
+            closeMenu();
+          }
+        });
+      }
+
+      // Code copy logic
+      document.querySelectorAll('.code-block-copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const code = this.closest('.code-block').querySelector('code').textContent;
+          navigator.clipboard.writeText(code).then(() => {
+            this.innerHTML = '<i data-lucide="check"></i> Nusxalandi';
+            this.classList.add('copied');
+            lucide.createIcons();
+            setTimeout(() => {
+              this.innerHTML = '<i data-lucide="copy"></i> Nusxalash';
+              this.classList.remove('copied');
+              lucide.createIcons();
+            }, 2000);
+          });
+        });
+      });
+
+      // Auto-hide alert messages after 5 seconds
+      setTimeout(function () {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function (alert) {
+          alert.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+          alert.style.opacity = '0';
+          alert.style.transform = 'translateY(-10px)';
+          setTimeout(function () {
+            alert.remove();
+          }, 500);
+        });
+      }, 5000);
+    });
+  </script>
+</body>
+
+</html>

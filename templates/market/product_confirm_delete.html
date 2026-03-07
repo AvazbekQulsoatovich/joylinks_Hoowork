@@ -1,0 +1,22 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Mahsulotni o'chirish - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Mahsulotni o'chirish</h1>
+        <p class="page-subtitle">Diqqat: bu amalni ortga qaytarib bo'lmaydi</p>
+    </div>
+</header>
+
+<div class="card">
+    <p>"{{ object.name }}" mahsulotini o'chirmoqchimisiz?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
+        <a href="{% url 'market_product_list' %}" class="btn btn-light">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}
+

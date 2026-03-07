@@ -1,0 +1,30 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Muddat tugagan - HooWork{% endblock %}
+
+{% block content %}
+<div class="empty-state" style="max-width: 600px; margin: 4rem auto;">
+    <div
+        style="width: 80px; height: 80px; background: var(--danger-light); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+        <i data-lucide="clock-alert" style="width: 40px; height: 40px;"></i>
+    </div>
+    <h2 class="mb-2">Topshirish muddati tugagan</h2>
+    <p class="mb-4">Siz ushbu vazifani o'z vaqtida topshirmagansiz. Hozirda ushbu vazifaga kirish va uni topshirish
+        imkoniyati yopiq.</p>
+
+    <div class="card text-left" style="background: var(--danger-light); border: 1px solid rgba(225, 29, 72, 0.1);">
+        <h4 class="mb-2" style="color: var(--danger);">Ma'lumot:</h4>
+        <p style="color: var(--gray-700); font-size: 0.95rem;">
+            Kurs qoidalariga ko'ra, muddati o'tgan va topshirilmagan vazifalar uchun tizim tomonidan avtomatik
+            <strong>0% ball</strong> qo'yiladi va <strong>1 tanga jarima</strong> yoziladi.
+        </p>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'homework_list' %}" class="btn btn-primary">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+            Vazifalar ro'yxatiga qaytish
+        </a>
+    </div>
+</div>
+{% endblock %}

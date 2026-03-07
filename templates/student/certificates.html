@@ -1,0 +1,352 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mening Sertifikatlarim - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Mening Sertifikatlarim</h1>
+        <p class="page-subtitle">Siz qo'lga kiritgan barcha muvaffaqiyatlar</p>
+    </div>
+    <div class="balance-chip">
+        <span class="label">Mening tangalarim</span>
+        <span class="value">{{ user.display_coin_balance }} tanga</span>
+    </div>
+</header>
+
+<div class="coins-and-certs-layout">
+    <section class="certificates-section">
+        {% if certificates %}
+        <div class="certificates-dashboard">
+            <div class="summary-shelf shadow-soft mb-5">
+                <div class="summary-item">
+                    <div class="summary-icon gold">
+                        <i data-lucide="medal"></i>
+                    </div>
+                    <div class="summary-data">
+                        <div class="summary-number">{{ certificates|length }}</div>
+                        <div class="summary-label">Jami sertifikatlar</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="certificates-grid-premium">
+                {% for cert in certificates %}
+                <div class="certificate-card-premium shadow-hover">
+                    <div class="card-visual">
+                        <div class="seal-backdrop">
+                            <i data-lucide="award"></i>
+                        </div>
+                        <div class="file-type-chip">PDF</div>
+                    </div>
+                    <div class="card-body-premium">
+                        <h3 class="cert-course-name">{{ cert.course.name }}</h3>
+                        <div class="cert-meta">
+                            <span><i data-lucide="calendar"></i> {{ cert.issued_at|date:"d.m.Y" }}</span>
+                        </div>
+                        <div class="card-footer-premium">
+                            {% if cert.file %}
+                                <a href="{{ cert.file.url }}" class="btn btn-primary btn-with-icon" download>
+                                    <i data-lucide="download"></i> Yuklab olish
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">Fayl yuklanmagan</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state-elegant">
+            <div class="empty-illustration">
+                <i data-lucide="award"></i>
+            </div>
+            <h3>Hozircha sizda sertifikat mavjud emas</h3>
+            <p>Kursni muvaffaqiyatli yakunlang va o'z yutuqlaringizni hujjatlashtiring!</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <aside class="coins-section card">
+        <h2 class="coins-title">Mening tangalarim</h2>
+
+        <div class="coins-summary">
+            <div>
+                <div class="coins-label">Joriy balans</div>
+                <div class="coins-value">{{ user.display_coin_balance }} tanga</div>
+            </div>
+            <a href="{% url 'student_market' %}" class="btn btn-outline-primary btn-sm">
+                Marketga o'tish
+            </a>
+        </div>
+
+        <h3 class="coins-subtitle">Uyga vazifalardan tushgan tangalar</h3>
+        <div class="list-container mini">
+            {% for sub in coin_rewards %}
+            <div class="list-item-custom sm">
+                <div class="item-title-sm">
+                    {{ sub.homework.title }}
+                </div>
+                <div class="item-subtitle-sm">
+                    Baho: {{ sub.score_percent }}% • {{ sub.coin_amount_awarded }} tanga
+                    {% if sub.graded_at %} • {{ sub.graded_at|date:"d.m.Y H:i" }}{% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state sm">Hozircha tangalar yo'q. Uyga vazifalarni yaxshi bajaring!</div>
+            {% endfor %}
+        </div>
+
+        <h3 class="coins-subtitle" style="margin-top: 1.5rem;">Marketdan sotib olganlarim</h3>
+        <div class="list-container mini">
+            {% for purchase in coin_purchases %}
+            <div class="list-item-custom sm">
+                <div class="item-title-sm">
+                    {{ purchase.product.name }}
+                </div>
+                <div class="item-subtitle-sm">
+                    {{ purchase.coins_spent }} tanga • {{ purchase.created_at|date:"d.m.Y H:i" }}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state sm">Hozircha sotib olingan mahsulotlar yo'q.</div>
+            {% endfor %}
+        </div>
+    </aside>
+</div>
+
+<style>
+    .shadow-soft {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .shadow-hover {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .shadow-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-shelf {
+        background: white;
+        padding: 1.5rem 2rem;
+        border-radius: 20px;
+        display: inline-flex;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .summary-icon.gold {
+        width: 50px;
+        height: 50px;
+        background: #fff8e1;
+        color: #ffb300;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .summary-number {
+        font-size: 1.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .summary-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 0.2rem;
+    }
+
+    .coins-and-certs-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .certificates-grid-premium {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .certificate-card-premium {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card-visual {
+        height: 160px;
+        background: linear-gradient(135deg, #16a085 0%, #0d9488 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .seal-backdrop {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .seal-backdrop i {
+        width: 40px;
+        height: 40px;
+    }
+
+    .file-type-chip {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+    }
+
+    .card-body-premium {
+        padding: 1.5rem;
+    }
+
+    .cert-course-name {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .cert-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .cert-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .card-footer-premium {
+        border-top: 1px solid #f1f5f9;
+        padding-top: 1.25rem;
+    }
+
+    .btn-with-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        border-radius: 12px;
+    }
+
+    .empty-state-elegant {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 30px;
+    }
+
+    .empty-illustration {
+        width: 100px;
+        height: 100px;
+        background: #f8fafc;
+        color: #cbd5e1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .empty-illustration i {
+        width: 48px;
+        height: 48px;
+    }
+
+    .balance-chip {
+        background: #ecfdf3;
+        color: #166534;
+        border-radius: 999px;
+        padding: 0.5rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .balance-chip .label {
+        opacity: 0.8;
+    }
+
+    .balance-chip .value {
+        font-weight: 700;
+    }
+
+    .coins-section {
+        padding: 1.5rem;
+    }
+
+    .coins-title {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .coins-subtitle {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .coins-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+    }
+
+    .coins-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .coins-value {
+        font-size: 1.25rem;
+        font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+        .coins-and-certs-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

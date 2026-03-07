@@ -1,0 +1,313 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}O'qituvchi - HooWork{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="dashboard-header card mb-4">
+    <div class="greeting">
+        <h1>O'qituvchi paneli</h1>
+        <p>Xush kelibsiz, {{ user.first_name|default:user.username }}!</p>
+    </div>
+    <div class="actions">
+        <a href="{% url 'student_coins' %}" class="balance-chip" style="text-decoration: none;">
+            <span class="label">Mening tangalarim</span>
+            <span class="value">{{ user.display_coin_balance }} tanga</span>
+        </a>
+        {% if user.display_coin_balance <= 0 %} <a href="{% url 'request_coins' %}" class="btn btn-warning ml-2">Tangam
+            kam qoldi</a>
+            {% endif %}
+            <a href="{% url 'homework_create' %}" class="btn btn-primary">
+                <i data-lucide="plus"></i> <span>Yangi vazifa</span>
+            </a>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-card-icon primary"><i data-lucide="users"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ groups|length }}</div>
+            <div class="stat-label">Guruhlar</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon secondary"><i data-lucide="book-open"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Talabalar</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon accent"><i data-lucide="file-text"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value">{{ total_homeworks }}</div>
+            <div class="stat-label">Vazifalar</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-icon warning"><i data-lucide="clock"></i></div>
+        <div class="stat-card-info">
+            <div class="stat-value {% if pending_count > 0 %}text-danger{% endif %}">{{ pending_count }}</div>
+            <div class="stat-label">Kutilmoqda</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-layout-grid">
+    <!-- Main Section -->
+    <div class="dashboard-main">
+        <!-- My Groups -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Guruhlarim</h3>
+                <a href="{% url 'group_list' %}" class="btn-link">Barchasi <i data-lucide="chevron-right"></i></a>
+            </div>
+            <div class="list-container">
+                {% for stat in group_stats %}
+                <div class="list-item-custom clickable" data-href="{% url 'group_detail' stat.group.pk %}">
+                    <div class="item-header">
+                        <span class="item-title">{{ stat.group.name }}</span>
+                        <span
+                            class="badge {% if stat.avg_score >= 70 %}badge-success{% elif stat.avg_score >= 50 %}badge-warning{% else %}badge-danger{% endif %}">
+                            {{ stat.avg_score|floatformat:0 }}%
+                        </span>
+                    </div>
+                    <div class="item-details">
+                        {{ stat.group.course.name }} • {{ stat.students }} talaba
+                        {% if stat.pending > 0 %}
+                        <span class="badge badge-warning ml-2">{{ stat.pending }} yangi</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Sizga guruh biriktirilmagan.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Section -->
+    <div class="dashboard-sidebar">
+        <!-- Pending Submissions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Tekshirilishi kerak</h3>
+                <a href="{% url 'teacher_submissions' %}" class="btn-link sm">Barchasi</a>
+            </div>
+            <div class="list-container mini">
+                {% for sub in pending_submissions %}
+                <div class="list-item-custom clickable sm" data-href="{% url 'grade_submission' sub.pk %}">
+                    <div class="item-title-sm">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                    <div class="item-subtitle-sm">{{ sub.homework.title|truncatechars:20 }}</div>
+                    <div class="item-meta-sm">{{ sub.submitted_at|timesince }} oldin</div>
+                </div>
+                {% empty %}
+                <div class="empty-state sm text-center py-3">
+                    <i data-lucide="check-circle" class="text-success mb-2"></i>
+                    <p>Hamma topshiriqlar tekshirilgan!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h3 class="card-title mb-3">Tezkor amallar</h3>
+            <div class="quick-grid">
+                <a href="{% url 'homework_create' %}" class="q-btn"><i data-lucide="plus-circle"></i><span>Yangi
+                        vazifa</span></a>
+                <a href="{% url 'teacher_submissions' %}" class="q-btn"><i
+                        data-lucide="clipboard-list"></i><span>Topshiriqlar</span></a>
+                <a href="{% url 'student_market' %}" class="q-btn"><i
+                        data-lucide="shopping-bag"></i><span>Market</span></a>
+                <a href="{% url 'profile' %}" class="q-btn"><i data-lucide="settings"></i><span>Profil</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--white);
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+        color: var(--text-main);
+        margin-bottom: 0.25rem;
+    }
+
+    .dashboard-header p {
+        color: var(--text-muted);
+    }
+
+    .balance-chip {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 999px;
+        padding: 0.35rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        margin-right: 0.75rem;
+    }
+
+    .balance-chip .label {
+        opacity: 0.8;
+    }
+
+    .balance-chip .value {
+        font-weight: 700;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--gray-100);
+    }
+
+    .stat-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card-icon.primary {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .stat-card-icon.secondary {
+        background: var(--secondary-light);
+        color: var(--secondary);
+    }
+
+    .stat-card-icon.accent {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+
+    .stat-card-icon.warning {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    .dashboard-layout-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .list-item-custom {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .list-item-custom.clickable:hover {
+        transform: translateX(5px);
+        cursor: pointer;
+    }
+
+    .list-item-custom:last-child {
+        border-bottom: none;
+    }
+
+    .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .item-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .item-details {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .item-title-sm {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .item-subtitle-sm {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .item-meta-sm {
+        font-size: 0.75rem;
+        color: var(--text-light);
+    }
+
+    .quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .q-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        background: var(--gray-50);
+        border-radius: var(--radius);
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .q-btn:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-layout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .dashboard-header .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

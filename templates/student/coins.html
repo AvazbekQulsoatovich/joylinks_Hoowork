@@ -1,0 +1,181 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Mening tangalarim - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Mening tangalarim</h1>
+        <p class="page-subtitle">Uyga vazifalar va market bo'yicha barcha tanga harakatlari</p>
+    </div>
+    <div class="balance-chip">
+        <span class="label">Joriy balans</span>
+        <span class="value">{{ user.display_coin_balance }} tanga</span>
+    </div>
+</header>
+
+<div class="coins-layout">
+    <!-- Tushumlar/History -->
+    <section class="card">
+        <h2 class="coins-subtitle">Tushumlar va o'tkazmalar</h2>
+        <div class="list-container mini">
+            {% for transfer in transfers %}
+            <div class="list-item-custom sm">
+                <div class="item-title-sm">
+                    {{ transfer.title }}
+                </div>
+                <div class="item-subtitle-sm">
+                    {{ transfer.message }} • {{ transfer.created_at|date:"d.m.Y H:i" }}
+                </div>
+            </div>
+            {% empty %}
+            {% if not coin_rewards and user.role == "STUDENT" %}
+            <div class="empty-state sm">Hozircha tushumlar yo'q.</div>
+            {% endif %}
+            {% endfor %}
+
+            {% if user.role == "STUDENT" %}
+            {% for sub in coin_rewards %}
+            <div class="list-item-custom sm">
+                <div class="item-title-sm">
+                    {% if sub.score_percent == 0 and sub.coin_amount_awarded == 0 %}
+                    <span class="text-danger">Jarima: Vazifa topshirilmadi</span>
+                    {% else %}
+                    {{ sub.homework.title }} (Vazifa)
+                    {% endif %}
+                </div>
+                <div class="item-subtitle-sm">
+                    {% if sub.score_percent == 0 and sub.coin_amount_awarded == 0 %}
+                    -1 tanga • {{ sub.graded_at|date:"d.m.Y H:i" }}
+                    {% else %}
+                    Baho: {{ sub.score_percent }}% • +{{ sub.coin_amount_awarded }} tanga
+                    {% if sub.graded_at %} • {{ sub.graded_at|date:"d.m.Y H:i" }}{% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Qoidalar -->
+    <aside class="dashboard-sidebar">
+        <div class="card mb-4" style="background: var(--primary-light); border-color: var(--primary);">
+            <h3 class="card-title mb-3" style="color: var(--primary);">Tanga to'plash qoidalari</h3>
+            <ul class="rules-list">
+                <li><i data-lucide="award"></i> 95-100% ball: <strong>3 tanga</strong></li>
+                <li><i data-lucide="award"></i> 75-94% ball: <strong>2 tanga</strong></li>
+                <li><i data-lucide="award"></i> 50-74% ball: <strong>1 tanga</strong></li>
+                <li><i data-lucide="calendar-check"></i> To'lovni 5-sanagacha qilish: <strong>10 tanga</strong> (admin
+                    beradi)</li>
+                <li><i data-lucide="user-plus"></i> Do'stini olib kelish: <strong>30+ tanga</strong> (admin beradi)</li>
+                <li class="penalty"><i data-lucide="alert-circle"></i> Vazifa qilinmasa/kelmasa: <strong>-1
+                        tanga</strong></li>
+            </ul>
+        </div>
+
+        <!-- Chiqimlar -->
+        <section class="card">
+            <h2 class="coins-subtitle">
+                {% if user.role == "STUDENT" %}Marketdan xaridlar{% else %}Berilgan mukofotlar{% endif %}
+            </h2>
+            <div class="list-container mini">
+                {% if user.role == "STUDENT" %}
+                {% for purchase in coin_purchases %}
+                <div class="list-item-custom sm">
+                    <div class="item-title-sm">
+                        {{ purchase.product.name }}
+                    </div>
+                    <div class="item-subtitle-sm">
+                        -{{ purchase.coins_spent }} tanga • {{ purchase.created_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state sm">Hozircha xaridlar yo'q.</div>
+                {% endfor %}
+                {% else %}
+                {% for sub in coin_rewards %}
+                <div class="list-item-custom sm">
+                    <div class="item-title-sm">
+                        {{ sub.student.get_full_name|default:sub.student.username }} ({{ sub.homework.title }})
+                    </div>
+                    <div class="item-subtitle-sm">
+                        -{{ sub.coin_amount_awarded }} tanga • {{ sub.graded_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state sm">Hozircha mukofotlar berilmagan.</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+</div>
+
+<style>
+    .coins-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .balance-chip {
+        background: #ecfdf3;
+        color: #166534;
+        border-radius: 999px;
+        padding: 0.5rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .balance-chip .label {
+        opacity: 0.8;
+    }
+
+    .balance-chip .value {
+        font-weight: 700;
+    }
+
+    .coins-subtitle {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .rules-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .rules-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(22, 160, 133, 0.1);
+    }
+
+    .rules-list li i {
+        width: 18px;
+        height: 18px;
+        color: var(--primary);
+    }
+
+    .rules-list li.penalty {
+        color: #e11d48;
+    }
+
+    .rules-list li.penalty i {
+        color: #e11d48;
+    }
+
+    @media (max-width: 900px) {
+        .coins-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

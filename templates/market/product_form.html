@@ -1,0 +1,104 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Market mahsuloti - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">
+            {% if object %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %}
+        </h1>
+    </div>
+</header>
+
+<div class="card">
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 300px;">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary mt-3">Saqlash</button>
+                <a href="{% url 'market_product_list' %}" class="btn btn-light mt-3">Bekor qilish</a>
+            </form>
+        </div>
+
+        <div
+            style="flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; color: var(--gray-600);">Rasm ko'rinishi</h3>
+            <div id="image-preview-container"
+                style="width: 100%; max-width: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); background: var(--gray-100); min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                {% if object and object.image %}
+                <img id="image-preview" src="{{ object.image.url }}" alt="Mahsulot rasmi"
+                    style="width: 100%; height: auto; object-fit: cover; display: block;">
+                <div id="image-placeholder"
+                    style="color: var(--gray-400); display: none; flex-direction: column; align-items: center; padding: 2rem;">
+                    <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                    <span style="font-size: 0.875rem;">Rasm yo'q</span>
+                </div>
+                {% else %}
+                <img id="image-preview" src="" alt="Mahsulot rasmi"
+                    style="width: 100%; height: auto; object-fit: cover; display: none;">
+                <div id="image-placeholder"
+                    style="color: var(--gray-400); display: flex; flex-direction: column; align-items: center; padding: 2rem;">
+                    <i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                    <span style="font-size: 0.875rem;">Rasm yuklang</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.querySelector('input[type="file"][name="image"]');
+        const imgPreview = document.getElementById('image-preview');
+        const placeholder = document.getElementById('image-placeholder');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        imgPreview.src = e.target.result;
+                        imgPreview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    };
+
+                    reader.readAsDataURL(file);
+                } else {
+                    // Revert to original or hide if not an image
+                    const hasOriginalImage = "{{ object.image|yesno:'true,false' }}" === "true";
+                    if (hasOriginalImage) {
+                        imgPreview.src = "{% if object and object.image %}{{ object.image.url }}{% endif %}";
+                        imgPreview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    } else {
+                        imgPreview.style.display = 'none';
+                        placeholder.style.display = 'flex';
+                    }
+                }
+            });
+
+            // Handle image load error
+            imgPreview.addEventListener('error', function () {
+                this.style.display = 'none';
+                placeholder.style.display = 'flex';
+                placeholder.innerHTML = '<i data-lucide="alert-triangle" style="width: 48px; height: 48px; margin-bottom: 0.5rem; color: var(--danger); opacity: 0.7;"></i><span style="font-size: 0.875rem; color: var(--danger);">Rasm yuklanmadi</span>';
+                lucide.createIcons();
+            });
+
+            // Handle image load success
+            imgPreview.addEventListener('load', function () {
+                this.style.display = 'block';
+                placeholder.style.display = 'none';
+
+                // Reset placeholder just in case it had error content before
+                placeholder.innerHTML = '<i data-lucide="image" style="width: 48px; height: 48px; margin-bottom: 0.5rem; opacity: 0.5;"></i><span style="font-size: 0.875rem;">Rasm yuklang</span>';
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Market xaridlari - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Market xaridlari</h1>
+        <p class="page-subtitle">Qaysi o'quvchi qaysi mahsulotni olganini kuzating</p>
+    </div>
+</header>
+
+<div class="table-container card">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>O'quvchi</th>
+            <th>Guruh</th>
+            <th>Mahsulot</th>
+            <th>Tanga</th>
+            <th>Sana</th>
+            <th>Holat</th>
+            <th>Amal</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in purchases %}
+        <tr>
+            <td>{{ item.student.get_full_name|default:item.student.username }}</td>
+            <td>
+                {% with group=item.student.study_groups.first %}
+                    {% if group %}{{ group.name }}{% else %}-{% endif %}
+                {% endwith %}
+            </td>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.coins_spent }}</td>
+            <td>{{ item.created_at|date:"d.m.Y H:i" }}</td>
+            <td>
+                {% if item.admin_confirmed %}
+                    <span class="badge badge-success">Berildi</span>
+                {% else %}
+                    <span class="badge badge-warning">Kutilmoqda</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not item.admin_confirmed %}
+                    <a href="{% url 'market_purchase_confirm' item.pk %}" class="btn btn-sm btn-primary">
+                        Tasdiqlash
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center">Hozircha xaridlar yo'q.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
