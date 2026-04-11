@@ -98,6 +98,12 @@ class HomeworkDetailView(LoginRequiredMixin, DetailView):
             if is_homework_locked_optimized(user, self.object, all_submitted_hw_ids):
                 return render(request, 'homeworks/locked.html', {'homework': self.object})
             
+        if user.role in ['TEACHER', 'ADMIN'] and self.object.deadline < timezone.now():
+            # Ensure all missed students get their 0% so the teacher can see them in the list
+            for student in self.object.group.students.all():
+                if not Submission.objects.filter(homework=self.object, student=student).exists():
+                    auto_grade_missed_homeworks(student)
+            
         context = self.get_context_data(object=self.object)
         
         # Check if student can still submit (not overdue or already submitted)
