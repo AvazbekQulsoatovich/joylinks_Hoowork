@@ -174,12 +174,17 @@ class SubmissionListSerializer(serializers.ModelSerializer):
     """Submission list view"""
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     homework_title = serializers.CharField(source='homework.title', read_only=True)
+    grade = serializers.IntegerField(source='score_percent', read_only=True)
+    status = serializers.SerializerMethodField()
     
     class Meta:
         model = Submission
         fields = ('id', 'homework', 'homework_title', 'student', 'student_name',
                   'grade', 'status', 'submitted_at')
         read_only_fields = ('id', 'submitted_at')
+    
+    def get_status(self, obj):
+        return "GRADED" if obj.is_graded else "PENDING"
 
 
 class SubmissionDetailSerializer(serializers.ModelSerializer):
@@ -187,13 +192,20 @@ class SubmissionDetailSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     homework_title = serializers.CharField(source='homework.title', read_only=True)
     file_url = serializers.SerializerMethodField()
+    grade = serializers.IntegerField(source='score_percent', read_only=True)
+    status = serializers.SerializerMethodField()
+    text_answer = serializers.CharField(source='content', read_only=True)
+    feedback = serializers.CharField(source='teacher_comment', read_only=True)
     
     class Meta:
         model = Submission
         fields = ('id', 'homework', 'homework_title', 'student', 'student_name',
-                  'text_answer', 'code_answer', 'file', 'file_url', 'grade',
-                  'feedback', 'status', 'submitted_at', 'graded_at')
+                  'text_answer', 'is_code', 'code_language', 'file', 'file_url', 
+                  'grade', 'feedback', 'status', 'submitted_at', 'graded_at')
         read_only_fields = ('id', 'submitted_at', 'graded_at')
+    
+    def get_status(self, obj):
+        return "GRADED" if obj.is_graded else "PENDING"
     
     def get_file_url(self, obj):
         if obj.file:
@@ -206,9 +218,11 @@ class SubmissionDetailSerializer(serializers.ModelSerializer):
 
 class SubmissionCreateUpdateSerializer(serializers.ModelSerializer):
     """Create/Update submission"""
+    text_answer = serializers.CharField(source='content', required=False, allow_blank=True)
+    
     class Meta:
         model = Submission
-        fields = ('homework', 'text_answer', 'code_answer', 'file')
+        fields = ('homework', 'text_answer', 'is_code', 'code_language', 'file')
     
     def validate_file(self, value):
         """5MB dan katta bo'lgan faylni qabul qilmaslik"""
@@ -225,6 +239,16 @@ class SubmissionCreateUpdateSerializer(serializers.ModelSerializer):
 
 class SubmissionGradeSerializer(serializers.ModelSerializer):
     """Grade submission"""
+    grade = serializers.IntegerField(source='score_percent')
+    feedback = serializers.CharField(source='teacher_comment')
+    status = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = Submission
         fields = ('grade', 'feedback', 'status')
+    
+    def update(self, instance, validated_data):
+        status_val = validated_data.pop('status', None)
+        if status_val == 'GRADED':
+            instance.is_graded = True
+        return super().update(instance, validated_data)

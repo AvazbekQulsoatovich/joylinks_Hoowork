@@ -30,7 +30,7 @@ class UserViewSet(viewsets.ModelViewSet):
     - Update: PUT/PATCH /api/v1/users/{id}/
     - Delete: DELETE /api/v1/users/{id}/
     """
-    queryset = User.objects.all()
+    queryset = User.objects.prefetch_related('certificates').all()
     authentication_classes = [JWTAuthentication, TokenAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdmin]
     
@@ -81,6 +81,14 @@ class CourseViewSet(viewsets.ModelViewSet):
     - Delete: DELETE /api/v1/courses/{id}/
     """
     queryset = Course.objects.all()
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == 'list':
+            # Potentially useful for list view if we want counts
+            from django.db.models import Count
+            return queryset.annotate(groups_count=Count('groups'))
+        return queryset
     authentication_classes = [JWTAuthentication, TokenAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
     
@@ -102,7 +110,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     - Update: PUT/PATCH /api/v1/groups/{id}/
     - Delete: DELETE /api/v1/groups/{id}/
     """
-    queryset = Group.objects.all()
+    queryset = Group.objects.select_related('course', 'teacher').prefetch_related('students').all()
     authentication_classes = [JWTAuthentication, TokenAuthentication, SessionAuthentication]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
     
@@ -160,16 +168,16 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         return HomeworkListSerializer
     
     def get_queryset(self):
-        """Filter homeworks by user role"""
+        """Filter homeworks by user role and optimize with select_related"""
         user = self.request.user
+        qs = Homework.objects.select_related('group', 'group__course').prefetch_related('submissions')
+        
         if user.is_authenticated:
             if user.role == 'STUDENT':
-                # Students see only homeworks from their groups
-                return Homework.objects.filter(group__students=user)
+                return qs.filter(group__students=user)
             elif user.role == 'TEACHER':
-                # Teachers see only their group homeworks
-                return Homework.objects.filter(group__teachers=user)
-        return self.queryset.all()
+                return qs.filter(group__teachers=user)
+        return qs.all()
     
     @action(detail=True, methods=['post'])
     def extend_deadline(self, request, pk=None):
@@ -207,13 +215,15 @@ class SubmissionViewSet(viewsets.ModelViewSet):
         return SubmissionListSerializer
     
     def get_queryset(self):
-        """Filter submissions based on user role"""
+        """Filter submissions based on user role and optimize with select_related"""
         user = self.request.user
+        qs = Submission.objects.select_related('homework', 'student', 'homework__group')
+        
         if user.role == 'STUDENT':
-            return Submission.objects.filter(student=user)
+            return qs.filter(student=user)
         elif user.role == 'TEACHER':
-            return Submission.objects.filter(homework__group__teachers=user)
-        return self.queryset.all()
+            return qs.filter(homework__group__teachers=user)
+        return qs.all()
     
     def perform_create(self, serializer):
         """Set student to current user"""
@@ -239,6 +249,6 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def pending(self, request):
         """Get pending submissions (ungraded)"""
-        submissions = self.get_queryset().filter(status='PENDING')
+        submissions = self.get_queryset().filter(is_graded=False)
         serializer = self.get_serializer(submissions, many=True)
         return Response(serializer.data)

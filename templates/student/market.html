@@ -25,7 +25,7 @@
             <div class="product-card shadow-hover">
                 {% if product.image %}
                 <div class="product-image">
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
                 </div>
                 {% endif %}
                 <div class="product-body">

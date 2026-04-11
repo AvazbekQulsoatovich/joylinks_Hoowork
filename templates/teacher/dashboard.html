@@ -15,12 +15,12 @@
             <span class="label">Mening tangalarim</span>
             <span class="value">{{ user.display_coin_balance }} tanga</span>
         </a>
-        {% if user.display_coin_balance <= 0 %} <a href="{% url 'request_coins' %}" class="btn btn-warning ml-2">Tangam
-            kam qoldi</a>
-            {% endif %}
-            <a href="{% url 'homework_create' %}" class="btn btn-primary">
-                <i data-lucide="plus"></i> <span>Yangi vazifa</span>
-            </a>
+        <a href="{% url 'request_coins' %}" class="btn btn-warning ml-2">
+            <i data-lucide="alert-circle"></i> <span>Tanga so'rash</span>
+        </a>
+        <a href="{% url 'homework_create' %}" class="btn btn-primary">
+            <i data-lucide="plus"></i> <span>Yangi vazifa</span>
+        </a>
     </div>
 </div>
 

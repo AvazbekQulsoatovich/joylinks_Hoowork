@@ -5,16 +5,12 @@ from academy.models import Group
 from django.core.exceptions import ValidationError
 
 
-def validate_file_size_7mb(value):
-    limit = 7 * 1024 * 1024
-    if value.size > limit:
-        raise ValidationError("Fayl hajmi 7MB dan oshmasligi kerak.")
+from core.validators import validate_file_10mb, validate_file_extension
+from core.image_processing import convert_to_webp
 
-
-def validate_file_size_5mb(value):
-    limit = 5 * 1024 * 1024
-    if value.size > limit:
-        raise ValidationError("Fayl hajmi 5MB dan oshmasligi kerak.")
+# Keep old names as aliases for migration compatibility
+validate_file_size_7mb = validate_file_10mb
+validate_file_size_5mb = validate_file_10mb
 
 
 class Homework(models.Model):
@@ -24,7 +20,7 @@ class Homework(models.Model):
         upload_to="homework_files/",
         blank=True,
         null=True,
-        validators=[validate_file_size_7mb],
+        validators=[validate_file_10mb, validate_file_extension],
     )
     deadline = models.DateTimeField(db_index=True)
     max_score = models.IntegerField(default=100)
@@ -39,8 +35,13 @@ class Homework(models.Model):
         null=True,
         related_name="created_homeworks",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     sequence = models.IntegerField(default=1)
+
+    def save(self, *args, **kwargs):
+        if self.file and hasattr(self.file, 'file') and self.file.name.lower().endswith(('.jpg', '.jpeg', '.png')):
+            self.file = convert_to_webp(self.file)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-created_at"]
@@ -65,7 +66,7 @@ class Submission(models.Model):
         upload_to="submissions/",
         blank=True,
         null=True,
-        validators=[validate_file_size_5mb],
+        validators=[validate_file_10mb, validate_file_extension],
     )
     is_code = models.BooleanField(
         default=False,
@@ -78,7 +79,7 @@ class Submission(models.Model):
         blank=True,
         verbose_name="O'qituvchi izohi",
     )
-    submitted_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(auto_now_add=True, db_index=True)
     graded_at = models.DateTimeField(null=True, blank=True)
     graded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -90,6 +91,11 @@ class Submission(models.Model):
     # Coin reward info (for "Mening tangalarim")
     coin_rewarded = models.BooleanField(default=False, db_index=True)
     coin_amount_awarded = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if self.file and hasattr(self.file, 'file') and self.file.name.lower().endswith(('.jpg', '.jpeg', '.png')):
+            self.file = convert_to_webp(self.file)
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ("homework", "student")
@@ -131,7 +137,7 @@ class Notification(models.Model):
         blank=True,
         related_name="notifications",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ["-created_at"]

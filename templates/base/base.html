@@ -116,11 +116,13 @@
           </a>
           {% endif %}
 
+          {% if user.role == 'STUDENT' %}
           <a href="{% url 'student_certificates' %}"
             class="menu-grid-item {% if 'my-certificates' in request.path %}active{% endif %}">
             <div class="menu-grid-icon"><i data-lucide="award"></i></div>
             <span>Sertifikatlar</span>
           </a>
+          {% endif %}
 
           <a href="{% url 'settings' %}" class="menu-grid-item {% if 'settings' in request.path %}active{% endif %}">
             <div class="menu-grid-icon"><i data-lucide="settings"></i></div>
@@ -232,12 +234,14 @@
             </a>
           </li>
 
+          {% if user.role == 'STUDENT' %}
           <li>
             <a href="{% url 'student_certificates' %}"
               class="nav-link {% if 'my-certificates' in request.path %}active{% endif %}">
               <i data-lucide="award"></i> <span class="nav-text">Mening sertifikatlarim</span>
             </a>
           </li>
+          {% endif %}
 
           <li>
             <a href="{% url 'student_market' %}"

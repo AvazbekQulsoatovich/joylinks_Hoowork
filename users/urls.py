@@ -4,7 +4,7 @@ from .views import (
     student_dashboard, teacher_dashboard, admin_dashboard,
     UserListView, UserCreateView, UserUpdateView, UserDeleteView, UserDetailView,
     toggle_user_status, change_user_password,
-    profile_view, ProfileUpdateView,
+    profile_view, ProfileUpdateView, change_own_password,
     request_coins, admin_transfer_coins,
     notifications_view, settings_view, statistics_view
 )
@@ -23,6 +23,7 @@ urlpatterns = [
     # Profile (Self)
     path('profile/', profile_view, name='profile'),
     path('profile/edit/', ProfileUpdateView.as_view(), name='profile_edit'),
+    path('profile/change-password/', change_own_password, name='change_own_password'),
     # coin-related actions
     path('request-coins/', request_coins, name='request_coins'),
     path('admin/transfer-coins/', admin_transfer_coins, name='admin_transfer_coins'),

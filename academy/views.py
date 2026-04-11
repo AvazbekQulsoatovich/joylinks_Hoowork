@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, models
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 
 from .models import Course, Group, Certificate, MarketProduct, MarketPurchase
 from .forms import (
@@ -42,6 +42,16 @@ class CourseListView(LoginRequiredMixin, ListView):
     template_name = 'academy/course_list.html'
     context_object_name = 'courses'
     
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['ADMIN', 'MODERATOR']:
+            return Course.objects.all()
+        # Teachers and Students only see courses they belong to via groups
+        group_courses = Group.objects.filter(
+            Q(teachers=user) | Q(students=user)
+        ).values_list('course_id', flat=True)
+        return Course.objects.filter(id__in=group_courses)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         for course in context['courses']:
@@ -56,11 +66,26 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
     template_name = 'academy/course_detail.html'
     context_object_name = 'course'
     
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['ADMIN', 'MODERATOR']:
+            return Course.objects.all()
+        # Teachers and Students only see courses they belong to
+        group_courses = Group.objects.filter(
+            Q(teachers=user) | Q(students=user)
+        ).values_list('course_id', flat=True)
+        return Course.objects.filter(id__in=group_courses)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course = self.object
+        user = self.request.user
         
-        groups = course.groups.all()
+        if user.role in ['ADMIN', 'MODERATOR']:
+            groups = course.groups.all()
+        else:
+            groups = course.groups.filter(Q(teachers=user) | Q(students=user))
+            
         context['groups'] = groups
         
         # Statistika
@@ -151,6 +176,12 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
     template_name = 'academy/group_detail.html'
     context_object_name = 'group'
     
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['ADMIN', 'MODERATOR']:
+            return Group.objects.all()
+        return Group.objects.filter(Q(teachers=user) | Q(students=user))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         group = self.object

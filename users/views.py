@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from django.shortcuts import render, redirect, get_object_or_404 # type: ignore
-from django.contrib.auth import authenticate, login, logout # type: ignore
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash # type: ignore
 from django.contrib.auth.decorators import login_required # type: ignore
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin # type: ignore
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView # type: ignore
@@ -22,6 +22,26 @@ from users.models import User # type: ignore
 from users.forms import UserForm, UserUpdateForm, ChangePasswordForm, ProfileUpdateForm, CoinTransferForm # type: ignore
 
 
+@login_required
+def change_own_password(request):
+    """Foydalanuvchining o'z parolini o'zgartirishi"""
+    if request.method == 'POST':
+        form = ChangePasswordForm(request.POST)
+        if form.is_valid():
+            user = request.user
+            user.set_password(form.cleaned_data['new_password'])
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Parolingiz muvaffaqiyatli o'zgartirildi!")
+            return redirect('profile')
+    else:
+        form = ChangePasswordForm()
+    
+    return render(request, 'users/change_own_password.html', {
+        'form': form
+    })
+
+
 # ============== AUTHENTICATION ==============
 
 def login_view(request):
@@ -34,7 +54,7 @@ def login_view(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         
-        user = authenticate(username=username, password=password)
+        user = authenticate(request, username=username, password=password)
         if user:
             if not user.is_active:
                 if user.role == 'STUDENT':
@@ -166,6 +186,14 @@ def teacher_dashboard(request):
     if user.role != 'TEACHER':
         return redirect_by_role(user)
     
+    # Coin balance alarm
+    coin_balance = user.coin_balance or 0
+    if coin_balance <= 0:
+        # Check if already notified admin recently to avoid spam? 
+        # For simplicity, just notify once per dashboard visit or check logic.
+        # But here we'll just ensure the alert shows in template.
+        pass
+
     # O'qituvchi guruhlari
     groups = user.teaching_groups.all().annotate(
         students_count=models.Count('students', distinct=True)
@@ -204,8 +232,30 @@ def teacher_dashboard(request):
         'total_students': total_students,
         'total_homeworks': total_homeworks,
         'pending_submissions': pending_submissions,
-        'pending_count': sum(g['pending'] for g in group_stats)
+        'pending_count': sum(g['pending'] for g in group_stats),
+        'coin_balance': coin_balance,
     })
+
+
+@login_required
+def request_coins(request):
+    """Teachers or Admins ask for more coins (e.g. for testing)."""
+    user = request.user
+    if user.role not in ['TEACHER', 'ADMIN']:
+        messages.error(request, "Faqat o'qituvchilar yoki adminlar tanga so'ray olishi mumkin.")
+        return redirect_by_role(user)
+
+    admins = User.objects.filter(role='ADMIN', is_active=True)
+    for admin in admins:
+        # If requesting admin is the same as recipient admin, it's just for testing.
+        Notification.objects.create(
+            user=admin,
+            notification_type=Notification.NotificationType.SYSTEM,
+            title="Tanga so'rovi",
+            message=f"{user.get_role_display()} {user.get_full_name() or user.username} tanga so'ramoqda.",
+        )
+    messages.success(request, "Tanga so'rovi yuborildi.")
+    return redirect_by_role(user)
 
 
 @login_required
@@ -658,8 +708,10 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user
     
     def form_valid(self, form):
+        response = super().form_valid(form)
+        update_session_auth_hash(self.request, self.request.user)
         messages.success(self.request, "Profilingiz yangilandi!")
-        return super().form_valid(form)
+        return response
 
 # ============== NOTIFICATIONS & SETTINGS ==============
 

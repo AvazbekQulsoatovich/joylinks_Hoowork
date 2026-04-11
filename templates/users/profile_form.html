@@ -20,7 +20,7 @@
 
         <div class="form-grid">
             {% for field in form %}
-            <div class="form-group {% if field.name == 'email' %}full-width{% endif %}">
+            <div class="form-group {% if field.name == 'email' or field.name == 'username' %}full-width{% endif %}">
                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                 {{ field }}
                 {% if field.errors %}
@@ -38,6 +38,10 @@
             <button type="submit" class="btn btn-primary btn-glow btn-block py-3">
                 <i data-lucide="check"></i> O'zgarishlarni saqlash
             </button>
+            <a href="{% url 'change_own_password' %}" class="btn btn-secondary btn-block mt-2"
+               style="display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+                <i data-lucide="lock" style="width:16px;height:16px;"></i> Parolni o'zgartirish
+            </a>
             <a href="{% url 'profile' %}" class="btn btn-secondary btn-block mt-2">Bekor qilish</a>
         </div>
     </form>

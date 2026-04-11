@@ -16,6 +16,9 @@
             <span class="label">Mening balansim:</span>
             <span class="value">{{ admin_coin_balance }} tanga</span>
         </a>
+        <a href="{% url 'request_coins' %}" class="btn btn-warning ml-2">
+            <i data-lucide="alert-circle"></i> <span>Tanga so'rash</span>
+        </a>
         <a href="{% url 'admin_transfer_coins' %}" class="btn btn-secondary ml-2">
             <i data-lucide="trending-up"></i> <span>Tanga yuborish</span>
         </a>
@@ -81,7 +84,7 @@
                     </div>
                     <div class="item-progress">
                         <div class="progress">
-                            <div class="progress-bar" style="width: {{ homework.submission_percent }}%"></div>
+                            <div class="progress-bar" style="width: {{ homework.submission_percent|default:0 }}%;"></div>
                         </div>
                         <span class="progress-text">{{ homework.submitted_count }}/{{ homework.total_students }}</span>
                     </div>

@@ -23,7 +23,9 @@ class HomeworkListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Homework.objects.select_related('group', 'created_by').order_by('-created_at')
+        queryset = Homework.objects.select_related('group', 'created_by').annotate(
+            total_students_count=Count('group__students', distinct=True)
+        ).order_by('-created_at')
         if user.role in ['ADMIN', 'MODERATOR']:
             return queryset.all()
         elif user.role == 'TEACHER':
@@ -43,17 +45,11 @@ class HomeworkListView(LoginRequiredMixin, ListView):
                 s.homework_id: s for s in Submission.objects.filter(homework__in=context['homeworks'], student=user)
             }
             # Pre-fetch ALL submissions for this student to optimize locking logic
-            # (In a real large-scale app, we'd only fetch what's needed, but here it's safer/faster for now)
             all_submitted_hw_ids = set(Submission.objects.filter(student=user).values_list('homework_id', flat=True))
 
             for hw in context['homeworks']:
-                # Optimized lock check would need all_submitted_hw_ids
-                # For now, let's just optimize the current list's status
                 hw.is_submitted = hw.id in user_submissions
-                submission = user_submissions.get(hw.id)
                 hw.is_overdue = hw.deadline < now and not hw.is_submitted
-                
-                # Optimized lock check (simplified version for the list)
                 hw.is_locked = is_homework_locked_optimized(user, hw, all_submitted_hw_ids)
                 
                 if hw.deadline > now and (hw.deadline - now).total_seconds() <= 3600:
@@ -67,7 +63,7 @@ class HomeworkListView(LoginRequiredMixin, ListView):
             graded_counts_dict = {item['homework_id']: item['count'] for item in graded_counts}
 
             for hw in context['homeworks']:
-                hw.total_students = hw.group.students.count()
+                hw.total_students = getattr(hw, 'total_students_count', 0)
                 hw.submitted_count = counts_dict.get(hw.id, 0)
                 hw.graded_count = graded_counts_dict.get(hw.id, 0)
                 hw.pending_count = hw.submitted_count - hw.graded_count
@@ -89,6 +85,10 @@ class HomeworkDetailView(LoginRequiredMixin, DetailView):
         # Security check
         if user.role == 'STUDENT' and not self.object.group.students.filter(id=user.id).exists():
             messages.error(request, "Siz bu guruhda emassiz.")
+            return redirect('homework_list')
+        
+        if user.role == 'TEACHER' and not self.object.group.teachers.filter(id=user.id).exists():
+            messages.error(request, "Siz bu guruh o'qituvchisi emassiz.")
             return redirect('homework_list')
         
         # Student uchun lock tekshirish
@@ -270,7 +270,9 @@ class SubmissionDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         if user.role == 'STUDENT':
             return Submission.objects.filter(student=user)
-        elif user.role in ['TEACHER', 'ADMIN', 'MODERATOR']:
+        elif user.role == 'TEACHER':
+            return Submission.objects.filter(homework__group__teachers=user)
+        elif user.role in ['ADMIN', 'MODERATOR']:
             return Submission.objects.all()
         return Submission.objects.none()
 
