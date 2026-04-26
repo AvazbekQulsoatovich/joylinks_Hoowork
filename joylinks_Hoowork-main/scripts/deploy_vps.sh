@@ -12,7 +12,10 @@ echo "🚀 Starting deployment for $PROJECT_NAME..."
 
 # 1. Update system and install dependencies
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3-pip python3-venv git nginx curl
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev git nginx curl
 
 # 2. Clone repository (if not exists)
 if [ ! -d "$PROJECT_DIR" ]; then
@@ -28,8 +31,8 @@ cd $PROJECT_DIR
 
 # 3. Setup Virtual Environment
 if [ ! -d ".venv" ]; then
-    echo "🐍 Creating virtual environment..."
-    python3 -m venv .venv
+    echo "🐍 Creating virtual environment with Python 3.12..."
+    python3.12 -m venv .venv
 fi
 
 source .venv/bin/activate
@@ -41,7 +44,7 @@ pip install -r requirements.txt
 if [ ! -f ".env" ]; then
     echo "📝 Creating .env file..."
     cat <<EOF > .env
-SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')
+SECRET_KEY=$(python3.12 -c 'import secrets; print(secrets.token_urlsafe(50))')
 DEBUG=False
 ALLOWED_HOSTS=$SERVER_IP,hoowork.uz,www.hoowork.uz
 DATABASE_URL=sqlite:///db.sqlite3
