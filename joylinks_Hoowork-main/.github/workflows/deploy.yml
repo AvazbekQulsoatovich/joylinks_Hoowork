@@ -1,4 +1,4 @@
-name: Deploy Joylinks Project
+name: Deploy to VPS
 
 on:
   push:
@@ -12,33 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to VPS
+      - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Navigate to project directory
-            cd ${{ secrets.PROJECT_PATH }}
-            
-            # Pull latest changes
+            cd /home/webdevaj/joylinks_Hoowork
             git pull origin main
-            
-            # Activate virtual environment and install dependencies
-            source .venv/bin/activate || python3 -m venv .venv && source .venv/bin/activate
+            source .venv/bin/activate
             pip install -r requirements.txt
-            
-            # Run migrations
             python manage.py migrate --noinput
-            
-            # Collect static files
             python manage.py collectstatic --noinput
-            
-            # Restart the service (adjust the service name as needed)
-            # If using systemd:
-            sudo systemctl restart joylinks || true
-            # If using PM2:
-            # pm2 restart joylinks || true
-            
-            echo "Deployment successful!"
+            sudo systemctl restart joylinks

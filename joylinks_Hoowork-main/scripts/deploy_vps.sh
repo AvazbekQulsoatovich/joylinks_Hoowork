@@ -4,7 +4,7 @@
 set -e
 
 PROJECT_NAME="joylinks"
-PROJECT_DIR="/home/webdevaj/joylinks"
+PROJECT_DIR="/home/webdevaj/joylinks_Hoowork"
 REPO_URL="https://github.com/AvazbekQulsoatovich/joylinks_Hoowork.git"
 SERVER_IP="95.182.119.84"
 
