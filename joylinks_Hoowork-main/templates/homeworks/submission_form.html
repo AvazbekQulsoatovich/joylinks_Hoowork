@@ -1,0 +1,248 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Vazifani topshirish: {{ homework.title }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header sticky-mobile-header">
+    <div class="header-content">
+        <a href="{% url 'homework_detail' homework.pk %}" class="back-link">
+            <i data-lucide="arrow-left"></i> Vazifa
+        </a>
+        <h1 class="page-title">{{ homework.title }}</h1>
+        <p class="page-subtitle">Vazifani topshirish</p>
+    </div>
+</header>
+
+<style>
+    .submission-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+        .submission-layout {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .page-header.sticky-mobile-header {
+            margin: -5rem -1rem 1rem -1rem;
+            padding: 1rem;
+        }
+
+        .submission-layout > div:nth-child(2) {
+            order: -1; /* Show info card first on mobile */
+        }
+        
+        .btn-stack-mobile {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-stack-mobile .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="submission-layout">
+    <!-- Form -->
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" id="submission-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Topshirish turi</label>
+                <div class="submission-type-toggle">
+                    <label class="submission-type-option active" id="type-text">
+                        <input type="radio" name="submission_type" value="text" checked>
+                        <strong>Oddiy matn</strong>
+                        <p class="text-muted" style="font-size: 0.75rem;">Yozma javob uchun</p>
+                    </label>
+                    <label class="submission-type-option" id="type-code">
+                        <input type="radio" name="submission_type" value="code">
+                        <strong>Kod (Monospace)</strong>
+                        <p class="text-muted" style="font-size: 0.75rem;">Dasturlash kodlari uchun</p>
+                    </label>
+                </div>
+            </div>
+
+            <div id="language-selection" class="form-group" style="display: none;">
+                <label class="form-label">{{ form.code_language.label }}</label>
+                {{ form.code_language }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" id="content-label">{{ form.content.label }}</label>
+                {{ form.content }}
+                {% if form.content.errors %}<small class="text-danger">{{ form.content.errors.0 }}</small>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">{{ form.file.label }}</label>
+                {{ form.file }}
+                <div id="image-preview" style="margin-top: 1rem; display: none;">
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 0.5rem;">Rasm ko'rinishi:</p>
+                    <img src="" id="preview-img" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--gray-200);">
+                </div>
+                <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">Zarur bo'lsa arxiv yoki rasm
+                    biriktiring</p>
+                <p style="color: var(--danger); font-size: 0.875rem; margin-top: 0.5rem; font-weight: 500;">
+                    ⚠️ Fayl hajmi 10 MB dan oshmasligi kerak
+                </p>
+                <div id="file-error" style="color: var(--danger); font-size: 0.875rem; margin-top: 0.5rem; font-weight: 500;"></div>
+            </div>
+
+            <div class="btn-stack-mobile" style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i data-lucide="send"></i>
+                    Topshirish
+                </button>
+                <a href="{% url 'homework_detail' homework.pk %}" class="btn btn-lg btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info -->
+    <div>
+        <div class="card mb-3">
+            <h4 class="mb-3">Ma'lumot</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Deadline:</span>
+                    <span class="font-bold text-danger">{{ homework.deadline|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-muted">Qolgan vaqt:</span>
+                    <span id="countdown" class="font-bold">--:--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info" style="font-size: 0.875rem;">
+            <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+            Vazifani topshirgandan so'ng tahrirlab bo'lmaydi. Yuborishdan oldin tekshiring.
+        </div>
+    </div>
+</div>
+
+<script>
+    // File size validation & Image Preview
+    const maxFileSize = 10 * 1024 * 1024; // 10 MB
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileErrorDiv = document.getElementById('file-error');
+    const submitForm = document.getElementById('submission-form');
+    const previewContainer = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+ 
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            fileErrorDiv.innerHTML = '';
+            previewContainer.style.display = 'none';
+            
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const fileSize = file.size;
+                const fileName = file.name;
+                
+                // Extension check
+                const ext = fileName.split('.').pop().toLowerCase();
+                const forbidden = ['apk', 'exe', 'bat', 'sh'];
+                
+                if (forbidden.includes(ext)) {
+                    fileErrorDiv.innerHTML = `❌ <strong>"${fileName}"</strong> formatini yuklash xavfsizlik uchun taqiqlangan!`;
+                    this.value = '';
+                    return;
+                }
+
+                if (fileSize > maxFileSize) {
+                    const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+                    fileErrorDiv.innerHTML = `❌ <strong>"${fileName}"</strong> juda katta! Hajmi: ${fileSizeMB} MB (maksimum: 10 MB)`;
+                    this.value = ''; // Clear the input
+                } else if (file.type.startsWith('image/')) {
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        previewContainer.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        // Form submit validation
+        submitForm.addEventListener('submit', function(e) {
+            if (fileInput.files && fileInput.files[0]) {
+                const fileSize = fileInput.files[0].size;
+                if (fileSize > maxFileSize) {
+                    e.preventDefault();
+                    const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+                    fileErrorDiv.innerHTML = `❌ Fayl hajmi juda katta: ${fileSizeMB} MB`;
+                }
+            }
+        });
+    }
+
+    // Toggle UI based on submission type
+    const typeText = document.getElementById('type-text');
+    const typeCode = document.getElementById('type-code');
+    const langSelection = document.getElementById('language-selection');
+    const textarea = document.querySelector('.code-textarea');
+    const contentLabel = document.getElementById('content-label');
+
+    // Set initial contrast-safe colors
+    textarea.style.color = '#1e293b'; 
+
+    typeText.addEventListener('click', () => {
+        typeText.classList.add('active');
+        typeCode.classList.remove('active');
+        langSelection.style.display = 'none';
+        textarea.style.fontFamily = 'inherit';
+        textarea.style.background = '#ffffff';
+        textarea.style.color = '#1e293b';
+        textarea.style.borderColor = 'var(--gray-300)';
+        contentLabel.innerText = "Javobingizni yozing";
+    });
+
+    typeCode.addEventListener('click', () => {
+        typeCode.classList.add('active');
+        typeText.classList.remove('active');
+        langSelection.style.display = 'block';
+        textarea.style.fontFamily = "'Fira Code', 'Monaco', 'Consolas', monospace";
+        textarea.style.background = '#0f172a'; // Deep dark background
+        textarea.style.color = '#f8fafc'; // Bright white-blue text for best contrast
+        textarea.style.borderColor = '#334155';
+        contentLabel.innerText = "Kodni yozing";
+    });
+
+    // Countdown logic
+    const deadline = new Date("{{ homework.deadline|date:'Y-m-d H:i:s' }}").getTime();
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = deadline - now;
+
+        if (distance < 0) {
+            document.getElementById("countdown").innerHTML = "Muddat tugadi";
+            document.getElementById("countdown").style.color = "var(--danger)";
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        let text = "";
+        if (days > 0) text += days + "k ";
+        text += hours + ":" + minutes + ":" + seconds;
+
+        document.getElementById("countdown").innerHTML = text;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+</script>
+{% endblock %}

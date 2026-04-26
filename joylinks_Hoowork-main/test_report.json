@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Teacher Login",
+        "success": true,
+        "message": ""
+    },
+    {
+        "name": "Profile Update (Username)",
+        "success": true,
+        "message": "Username changed to teacher_new"
+    },
+    {
+        "name": "Session Persistence",
+        "success": true,
+        "message": "Successfully stayed logged in after username change"
+    },
+    {
+        "name": "Course Visibility (Assigned)",
+        "success": false,
+        "message": "Teacher sees their assigned course in list"
+    },
+    {
+        "name": "Coin Request",
+        "success": false,
+        "message": "Notification created in DB"
+    },
+    {
+        "name": "Student Submission",
+        "success": true,
+        "message": "Successfully submitted to Django Modellari"
+    },
+    {
+        "name": "Teacher Grading",
+        "success": true,
+        "message": "Successfully graded submission at 90%"
+    }
+]

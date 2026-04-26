@@ -1,0 +1,30 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Kirish taqiqlandi - HooWork{% endblock %}
+
+{% block content %}
+<div class="empty-state" style="max-width: 600px; margin: 4rem auto;">
+    <div
+        style="width: 80px; height: 80px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+        <i data-lucide="shield-alert" style="width: 40px; height: 40px;"></i>
+    </div>
+    <h2 class="mb-2">Kirish bloklandi</h2>
+    <p class="mb-4">Ko'p marta noto'g'ri urinishlar sababli sizning profilingizga kirish vaqtincha taqiqlandi. Bu sizning xavfsizligingizni ta'minlash uchun amalga oshirildi.</p>
+
+    <div class="card text-left" style="background: #fff5f5; border: 1px solid #feb2b2;">
+        <h4 class="mb-2" style="color: #c53030;">Blokdan chiqish:</h4>
+        <ul style="padding-left: 1.5rem; color: #4a5568;">
+            <li>1 soat davomida kuting</li>
+            <li>Parolingizni eslashingizga ishonch hosil qiling</li>
+            <li>Agar muammo davom etsa, o'qituvchi yoki admin bilan bog'laning</li>
+        </ul>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'login' %}" class="btn btn-secondary">
+            <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+            Kirish sahifasiga qaytish
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}O'qituvchi - HooWork{% endblock %}
+
+{% block content %}
+<div class="mesh-bg">
+    <div class="mesh-blob mesh-blob-1"></div>
+    <div class="mesh-blob mesh-blob-2"></div>
+    <div class="mesh-blob mesh-blob-3"></div>
+</div>
+
+<!-- Header -->
+<div class="dashboard-header-modern mb-4">
+    <div class="greeting">
+        <h1 class="text-gradient"><span class="dynamic-greeting">Assalomu alaykum</span>, {{ user.first_name|default:user.username }}!</h1>
+        <p>Ustozlar boshqaruv paneliga xush kelibsiz</p>
+    </div>
+    <div class="header-actions">
+        <div class="balance-card-mini">
+            <div class="label">Mening balansim</div>
+            <div class="value">{{ user.display_coin_balance }} tanga</div>
+        </div>
+        <div class="action-group">
+            <a href="{% url 'homework_create' %}" class="btn btn-primary btn-glow">
+                <i data-lucide="plus-circle"></i> <span>Yangi vazifa</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid-modern mb-4">
+    <div class="stat-card-modern primary">
+        <div class="stat-icon"><i data-lucide="users"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ groups|length }}</div>
+            <div class="label">Guruhlar</div>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="users"></i></div>
+    </div>
+    <div class="stat-card-modern secondary">
+        <div class="stat-icon"><i data-lucide="book-open"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ total_students }}</div>
+            <div class="label">Talabalar</div>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="book-open"></i></div>
+    </div>
+    <div class="stat-card-modern accent">
+        <div class="stat-icon"><i data-lucide="file-text"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ total_homeworks }}</div>
+            <div class="label">Vazifalar</div>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="file-text"></i></div>
+    </div>
+    <div class="stat-card-modern warning">
+        <div class="stat-icon"><i data-lucide="clock"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ pending_count }}</div>
+            <div class="label">Tekshirilishi kerak</div>
+        </div>
+        <div class="stat-bg-icon"><i data-lucide="clock"></i></div>
+    </div>
+</div>
+
+<div class="dashboard-layout-grid">
+    <!-- Main Section -->
+    <div class="dashboard-main">
+        <!-- My Groups -->
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Guruhlarim</h3>
+                <a href="{% url 'group_list' %}" class="btn-link">Barchasi <i data-lucide="chevron-right"></i></a>
+            </div>
+            <div class="list-container">
+                {% for stat in group_stats %}
+                <div class="group-item-modern clickable" onclick="location.href='{% url "group_detail" stat.group.pk %}';">
+                    <div class="group-icon">
+                        <i data-lucide="layout-grid"></i>
+                    </div>
+                    <div class="group-content">
+                        <div class="group-top">
+                            <span class="group-name">{{ stat.group.name }}</span>
+                            <span class="group-badge {% if stat.avg_score >= 70 %}success{% elif stat.avg_score >= 50 %}warning{% else %}danger{% endif %}">
+                                {{ stat.avg_score|floatformat:0 }}%
+                            </span>
+                        </div>
+                        <div class="group-meta">
+                            <span><i data-lucide="book"></i> {{ stat.group.course.name }}</span>
+                            <span><i data-lucide="users"></i> {{ stat.students }} talaba</span>
+                            {% if stat.pending > 0 %}
+                            <span class="pending-tag"><i data-lucide="alert-circle"></i> {{ stat.pending }} ta yangi</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Sizga guruh biriktirilmagan.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Section -->
+    <div class="dashboard-sidebar">
+        <!-- Pending Submissions -->
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Topshiriqlar</h3>
+                <a href="{% url 'teacher_submissions' %}" class="btn-link sm">Barchasi</a>
+            </div>
+            <div class="submissions-list-modern">
+                {% for sub in pending_submissions %}
+                <div class="sub-item-modern clickable" onclick="location.href='{% url "grade_submission" sub.pk %}';">
+                    <div class="sub-info">
+                        <div class="student-name">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                        <div class="hw-title">{{ sub.homework.title|truncatechars:25 }}</div>
+                    </div>
+                    <div class="sub-time">{{ sub.submitted_at|timesince }} oldin</div>
+                </div>
+                {% empty %}
+                <div class="empty-state sm">
+                    <i data-lucide="check-circle" class="text-success mb-2"></i>
+                    <p>Hammasi tekshirilgan!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div class="card glass-card">
+            <h3 class="card-title mb-3">Tezkor amallar</h3>
+            <div class="quick-grid-modern">
+                <a href="{% url 'homework_create' %}" class="q-card-sm p1">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Yangi vazifa</span>
+                </a>
+                <a href="{% url 'teacher_submissions' %}" class="q-card-sm p2">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Topshiriqlar</span>
+                </a>
+                <a href="{% url 'student_market' %}" class="q-card-sm p3">
+                    <i data-lucide="shopping-bag"></i>
+                    <span>Market</span>
+                </a>
+                <a href="{% url 'profile' %}" class="q-card-sm p4">
+                    <i data-lucide="user"></i>
+                    <span>Profil</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+    }
+
+    .dashboard-header-modern h1 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .balance-card-mini {
+        background: var(--bg-card);
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        text-align: right;
+    }
+
+    .balance-card-mini .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .balance-card-mini .value { font-size: 1rem; font-weight: 800; color: var(--secondary); }
+
+    /* Stats Grid */
+    .stats-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-card-modern {
+        position: relative;
+        padding: 1.25rem;
+        border-radius: 20px;
+        overflow: hidden;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .stat-card-modern:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+
+    .stat-card-modern.primary { background: linear-gradient(135deg, rgba(63, 63, 201, 0.7), rgba(124, 58, 237, 0.7)); }
+    .stat-card-modern.secondary { background: linear-gradient(135deg, rgba(5, 150, 105, 0.7), rgba(16, 185, 129, 0.7)); }
+    .stat-card-modern.accent { background: linear-gradient(135deg, rgba(190, 18, 60, 0.7), rgba(244, 63, 94, 0.7)); }
+    .stat-card-modern.warning { background: linear-gradient(135deg, rgba(180, 83, 9, 0.7), rgba(245, 158, 11, 0.7)); }
+
+    .stat-icon {
+        width: 48px; height: 48px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2;
+    }
+    .stat-icon i { width: 24px; height: 24px; }
+    .stat-content { z-index: 2; }
+    .stat-content .value { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+    .stat-content .label { font-size: 0.8rem; opacity: 0.9; font-weight: 600; margin-top: 2px; }
+
+    .stat-bg-icon {
+        position: absolute; right: -8px; bottom: -8px;
+        font-size: 4rem; opacity: 0.1; transform: rotate(-15deg); z-index: 1;
+    }
+
+    /* Group Items */
+    .group-item-modern {
+        display: flex; gap: 1rem; padding: 1rem;
+        border-radius: 16px; background: rgba(255,255,255,0.02);
+        border: 1px solid var(--gray-100); margin-bottom: 0.75rem;
+        transition: all 0.2s;
+    }
+    .group-item-modern:hover { background: rgba(255,255,255,0.05); border-color: var(--primary); transform: translateX(5px); }
+
+    .group-icon {
+        width: 42px; height: 42px;
+        background: var(--primary-light); color: var(--primary);
+        border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    }
+
+    .group-content { flex: 1; }
+    .group-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+    .group-name { font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
+    .group-badge { font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; }
+    .group-badge.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .group-badge.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .group-badge.danger { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
+
+    .group-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .group-meta span { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+    .pending-tag { color: #f59e0b !important; font-weight: 700; }
+
+    /* Submissions List */
+    .sub-item-modern {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.75rem; border-radius: 10px; margin-bottom: 0.5rem;
+        background: rgba(255,255,255,0.01); transition: all 0.2s;
+    }
+    .sub-item-modern:hover { background: rgba(255,255,255,0.04); }
+    .student-name { font-weight: 600; font-size: 0.85rem; }
+    .hw-title { font-size: 0.75rem; color: var(--text-muted); }
+    .sub-time { font-size: 0.7rem; color: var(--text-light); }
+
+    /* Quick Grid Modern */
+    .quick-grid-modern {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+    }
+    .q-card-sm {
+        padding: 1rem; border-radius: 14px; background: var(--bg-card);
+        display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        text-decoration: none; color: var(--text-main); font-weight: 700; font-size: 0.75rem;
+        border: 1px solid var(--gray-100); transition: all 0.2s;
+    }
+    .q-card-sm:hover { transform: translateY(-3px); border-color: var(--primary); }
+    .q-card-sm i { width: 20px; height: 20px; }
+    .q-card-sm.p1 i { color: #6366f1; }
+    .q-card-sm.p2 i { color: #10b981; }
+    .q-card-sm.p3 i { color: #f43f5e; }
+    .q-card-sm.p4 i { color: #f59e0b; }
+
+    @media (max-width: 1000px) {
+        .dashboard-layout-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}

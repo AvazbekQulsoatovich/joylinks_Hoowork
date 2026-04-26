@@ -1,0 +1,353 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Statistika va Tahlil - HooWork{% endblock %}
+
+{% block content %}
+<div class="statistics-page animate-fade-in">
+    <header class="page-header glass-card"
+        style="padding: 2rem; margin-bottom: 2rem; border-left: 5px solid var(--primary);">
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <div class="header-icon"
+                style="background: var(--primary-light); color: var(--primary); padding: 1rem; border-radius: 15px;">
+                <i data-lucide="bar-chart-3" style="width: 32px; height: 32px;"></i>
+            </div>
+            <div>
+                <h1 class="page-title" style="margin: 0;">Akademiya Tahlili</h1>
+                <p class="page-subtitle" style="margin: 0; opacity: 0.8;">O'quv jarayoni va natijalarining real vaqtdagi
+                    ko'rinishi</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button onclick="window.location.reload()" class="btn btn-outline btn-sm">
+                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Yangilash
+            </button>
+        </div>
+    </header>
+
+    <!-- Key Metrics Grid -->
+    <div class="stats-grid"
+        style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div class="stat-card glass-card animate-slide-up" style="animation-delay: 0.1s;">
+            <div class="stat-icon" style="color: var(--primary);"><i data-lucide="users"></i></div>
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Jami O'quvchilar</div>
+            <div class="stat-info">{{ active_students_count }} nafari faol ({{ submission_rate }}%)</div>
+        </div>
+        <div class="stat-card glass-card animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="stat-icon" style="color: var(--secondary);"><i data-lucide="check-circle-2"></i></div>
+            <div class="stat-value">{{ total_submissions }}</div>
+            <div class="stat-label">Jami Topshiriqlar</div>
+            <div class="stat-info">{{ total_homeworks }} ta vazifa bo'yicha</div>
+        </div>
+        <div class="stat-card glass-card animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="stat-icon" style="color: var(--accent);"><i data-lucide="trending-up"></i></div>
+            <div class="stat-value">{{ avg_system_score }}%</div>
+            <div class="stat-label">O'rtacha o'zlashtirish</div>
+            <div class="stat-info">Tizim bo'yicha umumiy ball</div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid"
+        style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+        <!-- Line Chart: Submission Trends -->
+        <div class="card glass-card chart-container">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="activity" style="width: 18px; margin-right: 8px;"></i> Faollik
+                    dinamikasi</h3>
+                <span class="text-muted" style="font-size: 0.8rem;">Oxirgi 30 kun</span>
+            </div>
+            <div class="card-body" style="height: 350px;">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pie Chart: Score Distribution -->
+        <div class="card glass-card chart-container">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="pie-chart" style="width: 18px; margin-right: 8px;"></i> Bilim
+                    darajasi</h3>
+                <span class="text-muted" style="font-size: 0.8rem;">Ballar taqsimoti</span>
+            </div>
+            <div class="card-body" style="height: 350px;">
+                <canvas id="scorePieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+        <!-- Bar Chart: Group Ranking -->
+        <div class="card glass-card chart-container">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="award" style="width: 18px; margin-right: 8px;"></i> Top 10
+                    Guruhlar</h3>
+                <span class="text-muted" style="font-size: 0.8rem;">O'rtacha ball bo'yicha</span>
+            </div>
+            <div class="card-body" style="height: 400px;">
+                <canvas id="groupRankingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Horizontal Bar: Course Distribution -->
+        <div class="card glass-card chart-container">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="book-open" style="width: 18px; margin-right: 8px;"></i> Kurslar
+                    ommabopligi</h3>
+                <span class="text-muted" style="font-size: 0.8rem;">O'quvchilar soni</span>
+            </div>
+            <div class="card-body" style="height: 400px;">
+                <canvas id="courseDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Safely pass data to JS -->
+{{ line_labels_js|json_script:"line-labels-data" }}
+{{ line_data_js|json_script:"line-data-data" }}
+{{ pie_data_js|json_script:"pie-data-data" }}
+{{ bar_labels_js|json_script:"bar-labels-data" }}
+{{ bar_data_js|json_script:"bar-data-data" }}
+{{ course_labels_js|json_script:"course-labels-data" }}
+{{ course_data_js|json_script:"course-data-data" }}
+
+<!-- Chart.js and Custom Initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Helper to get JSON data
+        function getJsonData(id) {
+            const element = document.getElementById(id);
+            if (!element) return [];
+            try {
+                // For json_script, the content is a JSON string of a JSON string if we used json.dumps in views
+                const raw = JSON.parse(element.textContent);
+                return typeof raw === 'string' ? JSON.parse(raw) : raw;
+            } catch (e) {
+                console.error("Error parsing " + id, e);
+                return [];
+            }
+        }
+
+        const lineLabels = getJsonData('line-labels-data');
+        const lineData = getJsonData('line-data-data');
+        const pieData = getJsonData('pie-data-data');
+        const barLabels = getJsonData('bar-labels-data');
+        const barData = getJsonData('bar-data-data');
+        const courseLabels = getJsonData('course-labels-data');
+        const courseData = getJsonData('course-data-data');
+
+        console.log("Statistics Data Loaded:", { lineLabels, lineData, pieData, barLabels, barData, courseLabels, courseData });
+
+        // Global Chart Defaults
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+        const themeColors = {
+            primary: '#6366f1',
+            primaryLight: 'rgba(99, 102, 241, 0.2)',
+            secondary: '#10b981',
+            accent: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6'
+        };
+
+        // Helper for Gradients
+        function createGradient(ctx, color) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            return gradient;
+        }
+
+        // 1. Line Chart: Submission Trends
+        const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+        if (lineLabels.length > 0) {
+            new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: lineLabels,
+                    datasets: [{
+                        label: 'Topshiriqlar',
+                        data: lineData,
+                        borderColor: themeColors.primary,
+                        backgroundColor: createGradient(trendsCtx, 'rgba(99, 102, 241, 0.4)'),
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: themeColors.primary,
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8,
+                        borderWidth: 4,
+                        showLine: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 2000, easing: 'easeOutQuart' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true, mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 2. Pie Chart: Score Distribution
+        const pieCtx = document.getElementById('scorePieChart').getContext('2d');
+        if (pieData.some(v => v > 0)) {
+            new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Past (<40%)', 'O\'rta (40-75%)', 'A\'lo (>75%)'],
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: [themeColors.danger, themeColors.accent, themeColors.secondary],
+                        borderWidth: 5,
+                        borderColor: '#ffffff',
+                        hoverOffset: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { animateRotate: true, animateScale: true, duration: 2500 },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 25, font: { size: 14, weight: '600' } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        // 3. Bar Chart: Group Ranking
+        const barCtx = document.getElementById('groupRankingChart').getContext('2d');
+        if (barLabels.length > 0) {
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'O\'rtacha Ball %',
+                        data: barData,
+                        backgroundColor: themeColors.primary,
+                        borderRadius: 12,
+                        barThickness: 'flex',
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 2000, easing: 'easeOutBounce' },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { max: 100, beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 4. Horizontal Bar: Course Distribution
+        const courseCtx = document.getElementById('courseDistributionChart').getContext('2d');
+        if (courseLabels.length > 0) {
+            new Chart(courseCtx, {
+                type: 'bar',
+                data: {
+                    labels: courseLabels,
+                    datasets: [{
+                        label: 'O\'quvchilar soni',
+                        data: courseData,
+                        backgroundColor: themeColors.info,
+                        borderRadius: 12,
+                        barThickness: 'flex',
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 2000, delay: 500 },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { display: false } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        lucide.createIcons();
+    });
+</script>
+
+<style>
+    .statistics-page {
+        padding-bottom: 3rem;
+    }
+
+    .chart-container {
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-info {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    .animate-slide-up {
+        opacity: 0;
+        animation: slideUp 0.6s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}

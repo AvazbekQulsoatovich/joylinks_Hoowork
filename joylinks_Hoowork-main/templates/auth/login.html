@@ -1,0 +1,73 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Kirish - HooWork{% endblock %}
+
+{% block public_content %}
+<div class="login-page">
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card glass-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <img src="/static/img/logo.png" alt="Joylinks Logo">
+                </div>
+                <h1>Xush kelibsiz!</h1>
+                <p>HooWork tizimiga kirish uchun ma'lumotlaringizni kiriting</p>
+            </div>
+
+            {% if error %}
+            <div class="login-error">
+                <i data-lucide="alert-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Foydalanuvchi nomi</label>
+                    <div class="input-modern">
+                        <i data-lucide="user"></i>
+                        <input type="text" name="username" placeholder="Username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Parol</label>
+                    <div class="input-modern">
+                        <i data-lucide="lock"></i>
+                        <input type="password" name="password" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-glow">
+                    <span>Tizimga kirish</span>
+                    <i data-lucide="arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="app-install-section">
+                <div class="divider">
+                    <span>yoki ilovani o'rnating</span>
+                </div>
+
+                <div class="install-buttons">
+                    <button class="install-btn pwa-install-btn">
+                        <i data-lucide="download"></i>
+                        <span>Android o'rnatish</span>
+                    </button>
+                    <button class="install-btn ios-install-info-btn">
+                        <i data-lucide="apple"></i>
+                        <span>iOS o'rnatish</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
