@@ -1,0 +1,173 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Profil: {{ target_user.username }} - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header mb-4">
+    <div class="d-flex flex-column gap-2">
+        <a href="{% url 'user_list' %}" class="btn-link sm">
+            <i data-lucide="arrow-left"></i> Orqaga
+        </a>
+        <h1 class="page-title">{{ target_user.get_full_name|default:target_user.username }}</h1>
+        <p class="page-subtitle">{{ target_user.get_role_display }}</p>
+    </div>
+    <div class="actions mt-3">
+        <a href="{% url 'change_user_password' target_user.pk %}" class="btn btn-warning">
+            <i data-lucide="key"></i> <span>Parol</span>
+        </a>
+        <a href="{% url 'user_update' target_user.pk %}" class="btn btn-secondary">
+            <i data-lucide="edit"></i> <span>Tahrirlash</span>
+        </a>
+    </div>
+</header>
+
+<div class="user-detail-grid">
+    <!-- Left Panel: Info -->
+    <div class="detail-sidebar">
+        <div class="card p-4 text-center mb-4">
+            <div class="avatar-large mx-auto mb-3">
+                <i data-lucide="user"></i>
+            </div>
+            <h3 class="font-bold mb-1">{{ target_user.username }}</h3>
+            <span class="badge {% if target_user.is_active %}badge-success{% else %}badge-danger{% endif %} mb-4">
+                {% if target_user.is_active %}Faol{% else %}Bloklangan{% endif %}
+            </span>
+
+            <div class="info-list text-left border-top pt-4">
+                <div class="info-item">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ target_user.email|default:"-" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Telefon:</span>
+                    <span class="value">{{ target_user.phone|default:"-" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Qo'shilgan:</span>
+                    <span class="value">{{ target_user.date_joining|date:"d.m.Y" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Oxirgi kirish:</span>
+                    <span class="value">{{ target_user.last_login|date:"d.m.y H:i"|default:"-" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Activity -->
+    <div class="detail-main">
+        {% if target_user.role == 'STUDENT' %}
+        <div class="stats-grid mb-4">
+            <div class="stat-card">
+                <div class="stat-value">{{ avg_score }}%</div>
+                <div class="stat-label">O'rtacha ball</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ submission_count }}</div>
+                <div class="stat-label">Vazifalar</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Guruhlari</h3>
+                {% if user.role == 'ADMIN' %}
+                <a href="{% url 'assign_user_to_groups' target_user.pk %}" class="btn btn-sm btn-primary">
+                    <i data-lucide="user-plus"></i> Biriktirish
+                </a>
+                {% endif %}
+            </div>
+            <div class="list-container">
+                {% for g in groups %}
+                <div class="list-item-custom clickable" data-href="{% url 'group_detail' g.pk %}">
+                    <div class="item-title">{{ g.name }}</div>
+                    <div class="item-details">{{ g.course.name }}</div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Guruhlar yo'q</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% elif target_user.role == 'TEACHER' %}
+        <div class="stats-grid mb-4">
+            <div class="stat-card">
+                <div class="stat-value">{{ groups|length }}</div>
+                <div class="stat-label">Guruhlar</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ homework_count }}</div>
+                <div class="stat-label">Berilgan vazifalar</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Biriktirilgan guruhlar</h3>
+                {% if user.role == 'ADMIN' %}
+                <a href="{% url 'assign_user_to_groups' target_user.pk %}" class="btn btn-sm btn-primary">
+                    <i data-lucide="user-plus"></i> Biriktirish
+                </a>
+                {% endif %}
+            </div>
+            <div class="list-container">
+                {% for g in groups %}
+                <div class="list-item-custom clickable" data-href="{% url 'group_detail' g.pk %}">
+                    <div class="item-title">{{ g.name }}</div>
+                    <div class="item-details">{{ g.course.name }}</div>
+                </div>
+                {% empty %}
+                <div class="empty-state">Guruhlar yo'q</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .user-detail-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 1.5rem;
+    }
+
+    .avatar-large {
+        width: 100px;
+        height: 100px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .avatar-large i {
+        width: 50px;
+        height: 50px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .info-item .label {
+        color: var(--text-muted);
+    }
+
+    .info-item .value {
+        font-weight: 500;
+    }
+
+    @media (max-width: 900px) {
+        .user-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

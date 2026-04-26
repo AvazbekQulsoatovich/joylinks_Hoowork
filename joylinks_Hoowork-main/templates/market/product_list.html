@@ -1,0 +1,86 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Market mahsulotlari - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Market mahsulotlari</h1>
+        <p class="page-subtitle">Faqat admin tahrir qilishi mumkin</p>
+    </div>
+    <div class="header-actions">
+        <div class="balance-chip">
+            <span class="label">Admin tangasi</span>
+            <span class="value">{{ user.display_coin_balance }} tanga</span>
+        </div>
+        <a href="{% url 'market_product_create' %}" class="btn btn-primary">
+            Yangi mahsulot
+        </a>
+    </div>
+</header>
+
+<div class="table-container card">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Mahsulot</th>
+            <th>Narx (tanga)</th>
+            <th>Holat</th>
+            <th>Yaratilgan</th>
+            <th class="text-right">Amallar</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.name }}</td>
+            <td>{{ product.price_coins }}</td>
+            <td>
+                {% if product.is_active %}
+                <span class="badge badge-success">Faol</span>
+                {% else %}
+                <span class="badge badge-secondary">O'chirilgan</span>
+                {% endif %}
+            </td>
+            <td>{{ product.created_at|date:"d.m.Y H:i" }}</td>
+            <td class="text-right">
+                <a href="{% url 'market_product_update' product.pk %}" class="btn btn-sm btn-light">Tahrirlash</a>
+                <a href="{% url 'market_product_delete' product.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center">Hozircha birorta ham mahsulot yo'q.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<style>
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .balance-chip {
+        background: #ecfdf3;
+        color: #166534;
+        border-radius: 999px;
+        padding: 0.35rem 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+    }
+
+    .balance-chip .label {
+        opacity: 0.8;
+    }
+
+    .balance-chip .value {
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+

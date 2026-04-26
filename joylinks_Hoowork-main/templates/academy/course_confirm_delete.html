@@ -1,0 +1,22 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Kursni o'chirish - HooWork{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center;">
+    <div style="color: var(--danger); margin-bottom: 1.5rem;">
+        <i data-lucide="alert-triangle" style="width: 64px; height: 64px;"></i>
+    </div>
+    <h2 class="mb-3">Kursni o'chirish</h2>
+    <p class="mb-4 text-muted">Siz haqiqatdan ham <strong>"{{ object.name }}"</strong> kursini o'chirmoqchimisiz? Bu
+        kursga tegishli barcha guruhlar va vazifalar ham o'chib ketadi!</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-danger btn-lg">Tasdiqlash</button>
+            <a href="{% url 'course_detail' object.pk %}" class="btn btn-lg btn-secondary">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

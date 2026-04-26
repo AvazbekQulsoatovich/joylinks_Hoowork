@@ -1,0 +1,255 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Market - HooWork{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1 class="page-title">Market</h1>
+        <p class="page-subtitle">Toplagan tangalaringizga sovg'alar oling</p>
+    </div>
+    <div class="balance-chip">
+        <span class="label">Mening balansim</span>
+        <span class="value">{{ user.display_coin_balance }} tanga</span>
+    </div>
+</header>
+
+<div class="market-layout">
+    <section class="market-products card">
+        <div class="card-header">
+            <h2 class="card-title">Mahsulotlar</h2>
+        </div>
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card shadow-hover">
+                {% if product.image %}
+                <div class="product-image">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                </div>
+                {% endif %}
+                <div class="product-body">
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    {% if product.description %}
+                    <p class="product-desc">{{ product.description }}</p>
+                    {% endif %}
+                    <div class="product-footer">
+                        <span class="product-price">{{ product.price_coins }} tanga</span>
+                        {% if can_buy %}
+                        <form method="post" action="{% url 'buy_product' product.id %}">
+                            {% csrf_token %}
+                            {% if user.display_coin_balance < product.price_coins %} <button type="submit"
+                                class="btn btn-primary btn-sm" disabled>
+                                Sotib olish
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    Sotib olish
+                                </button>
+                                {% endif %}
+                        </form>
+                        {% else %}
+                        <span class="text-muted" style="font-size: 0.8rem;">Faqat o'quvchilar sotib olishi mumkin</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state-elegant">
+                <h3>Hozircha marketda mahsulot yo'q</h3>
+                <p>Admin tez orada yangi sovg'alar qo'shadi.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <aside class="market-sidebar">
+        <div class="card mb-4">
+            <h3 class="card-title mb-3">Mening xaridlarim</h3>
+            <div class="list-container mini">
+                {% for purchase in purchases %}
+                <div class="list-item-custom sm">
+                    <div class="item-title-sm">{{ purchase.product.name }}</div>
+                    <div class="item-subtitle-sm">
+                        {{ purchase.coins_spent }} tanga • {{ purchase.created_at|date:"d.m.Y H:i" }}
+                        {% if purchase.admin_confirmed %}
+                        <span class="badge badge-success ml-2">Berildi</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state sm">Hozircha xaridlar yo'q.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card notice-card">
+            <h3 class="card-title mb-2">Eslatma ustozlar uchun</h3>
+            <p class="text-muted" style="font-size: 0.85rem;">
+                Agar siz o'qituvchi bo'lsangiz, bu marketdan mahsulot sotib olish faqat o'quvchilar uchun ekanligini
+                unutmang. Sizning balansingiz o'quvchilarga mukofot sifatida tangalar berish uchun ishlatiladi.
+            </p>
+        </div>
+    </aside>
+</div>
+
+<style>
+    .balance-chip {
+        background: var(--bg-card);
+        color: var(--secondary);
+        border: 1px solid var(--secondary);
+        border-radius: 999px;
+        padding: 0.5rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    [data-theme='dark'] .balance-chip {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .balance-chip .label {
+        opacity: 0.8;
+    }
+
+    .balance-chip .value {
+        font-weight: 700;
+    }
+
+    .market-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .product-card {
+        background: var(--bg-card);
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-image {
+        height: 140px;
+        overflow: hidden;
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-body {
+        padding: 1rem 1.1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .product-name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-main);
+    }
+
+    .product-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-footer {
+        margin-top: auto;
+        padding-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .product-price {
+        font-weight: 800;
+        color: #f97316;
+        font-size: 1.1rem;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    @media (max-width: 900px) {
+        .market-layout {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .balance-chip {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .product-image {
+            height: 180px;
+        }
+
+        .product-name {
+            font-size: 1.1rem;
+        }
+
+        .product-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+
+        .product-footer .btn {
+            width: 100%;
+        }
+
+        .product-price {
+            text-align: center;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+    }
+</style>
+{% endblock %}

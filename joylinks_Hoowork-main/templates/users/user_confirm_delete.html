@@ -1,0 +1,22 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Foydalanuvchini o'chirish - HooWork{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center;">
+    <div style="color: var(--danger); margin-bottom: 1.5rem;">
+        <i data-lucide="user-x" style="width: 64px; height: 64px;"></i>
+    </div>
+    <h2 class="mb-3">Foydalanuvchini o'chirish</h2>
+    <p class="mb-4 text-muted">Siz haqiqatdan ham <strong>"{{ object.username }}"</strong> foydalanuvchisini
+        o'chirmoqchimisiz? Bu foydalanuvchiga tegishli barcha ma'lumotlar o'chiriladi.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-danger btn-lg">Tasdiqlash</button>
+            <a href="{% url 'user_detail' object.pk %}" class="btn btn-lg btn-secondary">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
