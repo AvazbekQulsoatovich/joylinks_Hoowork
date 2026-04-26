@@ -95,11 +95,11 @@ server {
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
-        root $PROJECT_DIR;
+        alias $PROJECT_DIR/staticfiles/;
     }
 
     location /media/ {
-        root $PROJECT_DIR;
+        alias $PROJECT_DIR/media/;
     }
 
     location / {
