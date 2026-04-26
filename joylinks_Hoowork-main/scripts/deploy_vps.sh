@@ -76,7 +76,7 @@ Environment=\"PATH=$PROJECT_DIR/.venv/bin\"
 ExecStart=$PROJECT_DIR/.venv/bin/gunicorn \
     --access-logfile - \
     --workers 3 \
-    --bind unix:/run/$PROJECT_NAME.sock \
+    --bind unix:$PROJECT_DIR/$PROJECT_NAME.sock \
     core.wsgi:application
 
 [Install]
@@ -104,7 +104,7 @@ server {
 
     location / {
         include proxy_params;
-        proxy_pass http://unix:/run/$PROJECT_NAME.sock;
+        proxy_pass http://unix:$PROJECT_DIR/$PROJECT_NAME.sock;
     }
 }
 EOF"
