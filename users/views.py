@@ -311,10 +311,10 @@ def admin_dashboard(request):
             'submission_percent': round(submission_percent),
         })
     
-    # Top o'quvchilar (Optimized with annotations)
+    # Top o'quvchilar (Optimized with annotations and prefetch)
     top_students_query = User.objects.filter(role='STUDENT', is_active=True).annotate(
         avg_v=Avg('submissions__score_percent', filter=Q(submissions__is_graded=True))
-    ).filter(avg_v__gt=0).order_by('-avg_v')[:5]
+    ).filter(avg_v__gt=0).prefetch_related('study_groups').order_by('-avg_v')[:5]
 
     top_students = []
     for student in top_students_query:

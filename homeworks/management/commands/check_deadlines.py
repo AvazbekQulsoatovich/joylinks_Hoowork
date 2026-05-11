@@ -22,7 +22,7 @@ class Command(BaseCommand):
                         student=student,
                         score_percent=0,
                         is_graded=True,
-                        content="Muddat o'tganligi sababli tizim tomonidan 0% ball qo'yildi."
+                        content="Avtomatik 0% (Muddat o'tgan)"
                     )
                     self.stdout.write(self.style.SUCCESS(f"Auto-graded {student.username} for HW {hw.pk}"))
 

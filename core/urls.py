@@ -2,8 +2,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from users.views import login_view, logout_view, student_dashboard, teacher_dashboard, admin_dashboard
+from django.shortcuts import render
+from users.views import login_view, logout_view, student_dashboard, teacher_dashboard, admin_dashboard, redirect_by_role
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,8 +25,16 @@ urlpatterns = [
     path('student/', student_dashboard, name='student_dashboard'),
     path('teacher/', teacher_dashboard, name='teacher_dashboard'),
     path('admin-panel/', admin_dashboard, name='admin_dashboard'),
+    path('404-test/', lambda r: render(r, '404.html'), name='404_test'),
     path('', login_view),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+def custom_page_not_found(request, exception=None):
+    if request.user.is_authenticated:
+        return redirect_by_role(request.user)
+    return redirect('login')
+
+handler404 = 'core.urls.custom_page_not_found'

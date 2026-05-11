@@ -59,7 +59,15 @@
             {% endif %}
         </div>
 
+        {% if is_reopened %}
+        <div class="alert alert-info glass mb-4">
+            <i data-lucide="unlock"></i>
+            <strong>Vazifa qayta ochildi!</strong> Ustoz muddatni uzaytirdi. Siz ushbu vazifani hozir topshirishingiz mumkin.
+        </div>
+        {% endif %}
+        
         {% if user.role == 'STUDENT' %}
+        
         <!-- O'quvchi javobi -->
         {% if submission %}
         <div class="card glass-card">
@@ -136,62 +144,96 @@
             </div>
 
             {% if submissions %}
-            <div class="table-container clean-table">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>O'quvchi</th>
-                            <th>Vaqt</th>
-                            <th>Tur</th>
-                            <th>Ball</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sub in submissions %}
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="avatar-sm">{{ sub.student.first_name|slice:":1" }}</div>
-                                    <div>
-                                        <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
-                                        {% if sub.is_late %}
-                                        <span class="badge badge-danger xs">KECH</span>
-                                        {% endif %}
+            <div class="submissions-container">
+                <!-- Table for Desktop -->
+                <div class="table-container clean-table hide-mobile">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>O'quvchi</th>
+                                <th>Vaqt</th>
+                                <th>Tur</th>
+                                <th>Ball</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in submissions %}
+                            <tr>
+                                <td>
+                                    <div class="student-info">
+                                        <div class="avatar-sm">{{ sub.student.first_name|slice:":1" }}</div>
+                                        <div>
+                                            <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                                            {% if sub.is_late %}
+                                            <span class="badge badge-danger xs">KECH</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="text-muted text-sm">{{ sub.submitted_at|date:"d.m, H:i" }}</td>
-                            <td>
-                                {% if sub.is_code %}
-                                <span class="badge badge-info">Kod</span>
-                                {% else %}
-                                <span class="badge badge-secondary">Matn</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if sub.is_graded %}
-                                <span
-                                    class="status-dot {% if sub.score_percent >= 70 %}success{% elif sub.score_percent >= 50 %}warning{% else %}danger{% endif %}"></span>
-                                <span style="font-weight: 600;">{{ sub.score_percent }}%</span>
-                                {% else %}
-                                <span class="status-dot warning"></span> Kutilmoqda
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{% url 'grade_submission' sub.pk %}"
-                                    class="btn-icon {% if sub.is_graded %}secondary{% else %}primary{% endif %}">
-                                    {% if sub.is_graded %}
-                                    <i data-lucide="eye"></i>
+                                </td>
+                                <td class="text-muted text-sm">{{ sub.submitted_at|date:"d.m, H:i" }}</td>
+                                <td>
+                                    {% if sub.is_code %}
+                                    <span class="badge badge-info">Kod</span>
                                     {% else %}
-                                    <i data-lucide="check-square"></i>
+                                    <span class="badge badge-secondary">Matn</span>
                                     {% endif %}
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td>
+                                    {% if sub.is_graded %}
+                                    <span class="status-dot {% if sub.score_percent >= 70 %}success{% elif sub.score_percent >= 50 %}warning{% else %}danger{% endif %}"></span>
+                                    <span style="font-weight: 600;">{{ sub.score_percent }}%</span>
+                                    {% else %}
+                                    <span class="status-dot warning"></span> Kutilmoqda
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'grade_submission' sub.pk %}"
+                                        class="btn-icon {% if sub.is_graded %}secondary{% else %}primary{% endif %}">
+                                        {% if sub.is_graded %}
+                                        <i data-lucide="eye"></i>
+                                        {% else %}
+                                        <i data-lucide="check-square"></i>
+                                        {% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Cards for Mobile -->
+                <div class="mobile-submissions-list show-mobile-only">
+                    {% for sub in submissions %}
+                    <div class="submission-mobile-card" data-href="{% url 'grade_submission' sub.pk %}">
+                        <div class="sub-mobile-header">
+                            <div class="student-info">
+                                <div class="avatar-sm">{{ sub.student.first_name|slice:":1" }}</div>
+                                <div class="name-box">
+                                    <div class="name">{{ sub.student.get_full_name|default:sub.student.username }}</div>
+                                    <div class="time">{{ sub.submitted_at|date:"d.m, H:i" }} {% if sub.is_late %}<span class="text-danger">(Kech)</span>{% endif %}</div>
+                                </div>
+                            </div>
+                            <div class="score-box">
+                                {% if sub.is_graded %}
+                                <div class="score">{{ sub.score_percent }}%</div>
+                                {% else %}
+                                <div class="score kutilmoqda">?</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="sub-mobile-footer">
+                            <div class="type-badge">
+                                {% if sub.is_code %}Kod{% else %}Matn{% endif %}
+                            </div>
+                            <div class="action-text">
+                                {% if sub.is_graded %}Ko'rish{% else %}Baholash{% endif %} <i data-lucide="chevron-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
 
@@ -672,10 +714,43 @@
 
         .sticky-header {
             margin: -5rem -1rem 1rem -1rem;
-            /* Adjust for mobile padding */
             padding: 1rem;
             position: relative;
-            /* Unstick on mobile to save screen space */
+        }
+
+        /* Improved Attachment for Mobile */
+        .file-link {
+            padding: 0.75rem;
+            gap: 0.75rem;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+        }
+
+        .file-name {
+            font-size: 0.85rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-all;
+        }
+
+        .file-action {
+            font-size: 0.7rem;
+        }
+
+        .description-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .card {
+            margin-bottom: 1rem !important;
         }
     }
 </style>

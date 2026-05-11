@@ -50,7 +50,7 @@ class CourseListView(LoginRequiredMixin, ListView):
         group_courses = Group.objects.filter(
             Q(teachers=user) | Q(students=user)
         ).values_list('course_id', flat=True)
-        return Course.objects.filter(id__in=group_courses)
+        return Course.objects.filter(id__in=group_courses).distinct()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -74,7 +74,7 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
         group_courses = Group.objects.filter(
             Q(teachers=user) | Q(students=user)
         ).values_list('course_id', flat=True)
-        return Course.objects.filter(id__in=group_courses)
+        return Course.objects.filter(id__in=group_courses).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -157,9 +157,9 @@ class GroupListView(LoginRequiredMixin, ListView):
         if user.role in ['ADMIN', 'MODERATOR']:
             return queryset.all()
         elif user.role == 'TEACHER':
-            return queryset.filter(teachers=user)
+            return queryset.filter(teachers=user).distinct()
         elif user.role == 'STUDENT':
-            return queryset.filter(students=user)
+            return queryset.filter(students=user).distinct()
         return Group.objects.none()
     
     def get_context_data(self, **kwargs):
@@ -180,7 +180,7 @@ class GroupDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         if user.role in ['ADMIN', 'MODERATOR']:
             return Group.objects.all()
-        return Group.objects.filter(Q(teachers=user) | Q(students=user))
+        return Group.objects.filter(Q(teachers=user) | Q(students=user)).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

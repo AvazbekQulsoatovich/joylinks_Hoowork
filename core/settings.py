@@ -106,11 +106,11 @@ DATABASES = {
     )
 }
 
-# Caching Configuration
+# Caching Configuration - Using LocMemCache for better speed than DatabaseCache if Redis is not available
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'my_cache_table',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
     }
 }
 
@@ -184,8 +184,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security settings
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', str(not DEBUG)).lower() == 'true'
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', str(not DEBUG)).lower() == 'true'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
@@ -198,6 +198,8 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
+    SECURE_REFERRER_POLICY = 'same-origin'
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 
 # Simple CSRF trusted origins for mobile access if needed
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.hoowork.uz,http://127.0.0.1:8000,http://localhost:8000').split(',')
@@ -256,5 +258,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# File Upload Limits (10 MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+# Note: Ensure Nginx 'client_max_body_size 10M;' is set in server config.
 
 

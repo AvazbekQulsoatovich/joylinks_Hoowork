@@ -11,7 +11,7 @@ from django.db.models import Avg, Count, Q # type: ignore
 
 from .models import Homework, Submission, Notification # type: ignore
 from .forms import HomeworkForm, SubmissionForm, GradeSubmissionForm # type: ignore
-from .utils import is_homework_locked_optimized, auto_grade_missed_homeworks, award_coins_for_submission # type: ignore
+from .utils import is_homework_locked_optimized, auto_grade_missed_homeworks, award_coins_for_submission, revert_auto_graded_submissions # type: ignore
 from academy.models import Group # type: ignore
 
 
@@ -51,6 +51,7 @@ class HomeworkListView(LoginRequiredMixin, ListView):
                 hw.is_submitted = hw.id in user_submissions
                 hw.is_overdue = hw.deadline < now and not hw.is_submitted
                 hw.is_locked = is_homework_locked_optimized(user, hw, all_submitted_hw_ids)
+                hw.is_reopened = bool(hw.reopened_at and not hw.is_submitted and hw.deadline > now)
                 
                 if hw.deadline > now and (hw.deadline - now).total_seconds() <= 3600:
                     hw.deadline_warning = True
@@ -120,6 +121,7 @@ class HomeworkDetailView(LoginRequiredMixin, DetailView):
             context['submission'] = submission
             context['can_submit_now'] = not is_overdue and not submission
             context['is_overdue_unsubmitted'] = False # No longer needed on main detail if we block
+            context['is_reopened'] = bool(self.object.reopened_at and not submission and not is_overdue)
             
         return self.render_to_response(context)
 
@@ -193,9 +195,8 @@ class HomeworkUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = 'homeworks/homework_form.html'
 
     def test_func(self):
-        homework = self.get_object()
         user = self.request.user
-        return user.role in ['ADMIN', 'MODERATOR'] or (user.role == 'TEACHER' and homework.created_by == user)
+        return user.role in ['ADMIN', 'MODERATOR', 'TEACHER']
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -204,8 +205,16 @@ class HomeworkUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
+        self.object = form.save()
+        new_deadline = self.object.deadline
+        
+        if new_deadline > timezone.now():
+            reverted = revert_auto_graded_submissions(self.object)
+            if reverted > 0:
+                messages.info(self.request, f"{reverted} ta o'quvchi uchun avtomatik 0 ball bekor qilindi va qayta topshirish imkoniyati ochildi.")
+        
         messages.success(self.request, "Vazifa yangilandi!")
-        return super().form_valid(form)
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse('homework_detail', kwargs={'pk': self.object.pk})
@@ -218,9 +227,8 @@ class HomeworkDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy('homework_list')
 
     def test_func(self):
-        homework = self.get_object()
         user = self.request.user
-        return user.role in ['ADMIN', 'MODERATOR'] or (user.role == 'TEACHER' and homework.created_by == user)
+        return user.role in ['ADMIN', 'MODERATOR', 'TEACHER']
 
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Vazifa o'chirildi!")

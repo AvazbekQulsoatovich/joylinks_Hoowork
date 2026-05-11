@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="uz" data-theme="dark">
 
 <head>
   <meta charset="UTF-8">
@@ -22,6 +22,25 @@
     rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="/static/js/pwa.js" defer></script>
+  <script>
+    // Theme initialization (prevent flash)
+    (function() {
+      const theme = localStorage.getItem('theme') || 'dark'; // Default to dark
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    function getGreeting() {
+      const h = new Date().getHours();
+      if (h < 6) return "Xayrli tun";
+      if (h < 12) return "Xayrli tong";
+      if (h < 18) return "Xayrli kun";
+      return "Xayrli kech";
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.querySelector('.dynamic-greeting');
+        if (el) el.textContent = getGreeting();
+    });
+  </script>
 </head>
 
 <body>
@@ -35,6 +54,10 @@
         </div>
       </a>
       <div class="mobile-header-actions">
+        <button id="theme-toggle-mobile" class="theme-toggle-btn">
+          <i data-lucide="moon" class="dark-icon"></i>
+          <i data-lucide="sun" class="light-icon"></i>
+        </button>
         {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
         <a href="{% url 'admin_dashboard' %}" class="mobile-action-btn">
           <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
@@ -275,6 +298,11 @@
     </aside>
 
     <main class="main-content">
+      <div class="mesh-bg">
+        <div class="mesh-blob mesh-blob-1"></div>
+        <div class="mesh-blob mesh-blob-2"></div>
+        <div class="mesh-blob mesh-blob-3"></div>
+      </div>
       {% if messages %}
       <div class="messages-container" style="padding: 1rem 1.5rem 0;">
         {% for message in messages %}
@@ -324,6 +352,12 @@
     </div>
   </div>
 
+  <!-- Theme Toggle (Global) -->
+  <button id="theme-toggle-global" class="theme-toggle-fixed">
+    <i data-lucide="moon" class="dark-icon"></i>
+    <i data-lucide="sun" class="light-icon"></i>
+  </button>
+
   <script>
     lucide.createIcons();
 
@@ -341,6 +375,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+      // Initialize Icons
+      lucide.createIcons();
+
       // Generic click handler for data-href
       document.querySelectorAll('[data-href]').forEach(function (el) {
         el.addEventListener('click', function () {
@@ -356,7 +393,7 @@
       if (menuTrigger && menuOverlay) {
         menuTrigger.addEventListener('click', function () {
           menuOverlay.classList.add('active');
-          document.body.style.overflow = 'hidden'; // Prevent scrolling
+          document.body.style.overflow = 'hidden';
         });
 
         const closeMenu = function () {
@@ -392,7 +429,7 @@
         });
       });
 
-      // Auto-hide alert messages after 5 seconds
+      // Auto-hide alert messages
       setTimeout(function () {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(function (alert) {
@@ -404,6 +441,21 @@
           }, 500);
         });
       }, 5000);
+
+      // Theme toggle logic
+      const globalThemeBtn = document.getElementById('theme-toggle-global');
+      const mobileThemeBtn = document.getElementById('theme-toggle-mobile');
+      
+      const toggleTheme = () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        lucide.createIcons();
+      };
+
+      if (globalThemeBtn) globalThemeBtn.addEventListener('click', toggleTheme);
+      if (mobileThemeBtn) mobileThemeBtn.addEventListener('click', toggleTheme);
     });
   </script>
 </body>

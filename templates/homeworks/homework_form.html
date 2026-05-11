@@ -13,7 +13,7 @@
     </div>
 </header>
 
-<div class="card" style="max-width: 800px;">
+<div class="card homework-form-card">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
@@ -73,7 +73,7 @@
             });
         </script>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div class="homework-meta-grid">
             <div class="form-group">
                 <label class="form-label">{{ form.deadline.label }}</label>
                 {{ form.deadline }}
@@ -93,12 +93,40 @@
             <div class="form-group">
                 <label class="form-label">{{ form.sequence.label }}</label>
                 {{ form.sequence }}
-                <small class="text-muted">Vazifalar tartibi (1, 2, 3...)</small>
+                <small class="text-muted">Tartib (1, 2, 3...)</small>
                 {% if form.sequence.errors %}
                 <small style="color: var(--danger);">{{ form.sequence.errors.0 }}</small>
                 {% endif %}
             </div>
         </div>
+
+        <style>
+            .homework-form-card {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            .homework-meta-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 1rem;
+            }
+            @media (max-width: 768px) {
+                .homework-meta-grid {
+                    grid-template-columns: 1fr;
+                    gap: 0.5rem;
+                }
+                .btn-stack {
+                    flex-direction: column;
+                    width: 100%;
+                }
+                .btn-stack .btn {
+                    width: 100%;
+                }
+                .page-header {
+                    margin-bottom: 1rem;
+                }
+            }
+        </style>
 
         {% if form.non_field_errors %}
         <div class="alert alert-danger">
@@ -106,9 +134,9 @@
         </div>
         {% endif %}
 
-        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <div class="btn-stack" style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button type="submit" class="btn btn-primary">
-                <i data-lucide="save" style="width: 18px; height: 18px;"></i>
+                <i data-lucide="save"></i>
                 {% if object %}Saqlash{% else %}Yaratish{% endif %}
             </button>
             <a href="{% url 'homework_list' %}" class="btn btn-secondary">Bekor qilish</a>

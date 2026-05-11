@@ -36,6 +36,7 @@ class Homework(models.Model):
         related_name="created_homeworks",
     )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    reopened_at = models.DateTimeField(null=True, blank=True)
     sequence = models.IntegerField(default=1)
 
     def save(self, *args, **kwargs):

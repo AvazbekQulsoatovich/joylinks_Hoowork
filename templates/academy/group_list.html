@@ -50,6 +50,9 @@
                         <a href="{% url 'group_update' group.pk %}" class="btn btn-sm btn-secondary">
                             <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
                         </a>
+                        <a href="{% url 'group_delete' group.pk %}" class="btn btn-sm btn-outline text-danger" title="O'chirish">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                        </a>
                         {% endif %}
                     </div>
                 </td>

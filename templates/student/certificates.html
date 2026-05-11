@@ -133,10 +133,13 @@
     }
 
     .summary-shelf {
-        background: white;
+        background: var(--bg-card);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         padding: 1.5rem 2rem;
         border-radius: 20px;
         display: inline-flex;
+        border: var(--glass-border);
     }
 
     .summary-item {
@@ -156,15 +159,20 @@
         justify-content: center;
     }
 
+    [data-theme='dark'] .summary-icon.gold {
+        background: rgba(255, 179, 0, 0.1);
+    }
+
     .summary-number {
         font-size: 1.5rem;
         font-weight: 800;
         line-height: 1;
+        color: var(--text-main);
     }
 
     .summary-label {
         font-size: 0.85rem;
-        color: #64748b;
+        color: var(--text-muted);
         margin-top: 0.2rem;
     }
 
@@ -181,15 +189,17 @@
     }
 
     .certificate-card-premium {
-        background: white;
+        background: var(--bg-card);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         border-radius: 24px;
         overflow: hidden;
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        border: var(--glass-border);
     }
 
     .card-visual {
         height: 160px;
-        background: linear-gradient(135deg, #16a085 0%, #0d9488 100%);
+        background: var(--primary-gradient);
         position: relative;
         display: flex;
         align-items: center;
@@ -232,13 +242,14 @@
         margin: 0 0 0.5rem 0;
         font-size: 1.15rem;
         font-weight: 700;
+        color: var(--text-main);
     }
 
     .cert-meta {
         display: flex;
         align-items: center;
         gap: 1rem;
-        color: #64748b;
+        color: var(--text-muted);
         font-size: 0.85rem;
         margin-bottom: 1.5rem;
     }
@@ -250,7 +261,7 @@
     }
 
     .card-footer-premium {
-        border-top: 1px solid #f1f5f9;
+        border-top: 1px solid var(--gray-100);
         padding-top: 1.25rem;
     }
 
@@ -266,15 +277,18 @@
     .empty-state-elegant {
         text-align: center;
         padding: 4rem 2rem;
-        background: white;
+        background: var(--bg-card);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         border-radius: 30px;
+        border: var(--glass-border);
     }
 
     .empty-illustration {
         width: 100px;
         height: 100px;
-        background: #f8fafc;
-        color: #cbd5e1;
+        background: var(--gray-50);
+        color: var(--gray-400);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -288,14 +302,19 @@
     }
 
     .balance-chip {
-        background: #ecfdf3;
-        color: #166534;
+        background: var(--secondary-light);
+        color: var(--secondary);
         border-radius: 999px;
         padding: 0.5rem 1.25rem;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         font-size: 0.9rem;
+    }
+
+    [data-theme='dark'] .balance-chip {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     .balance-chip .label {
@@ -308,6 +327,9 @@
 
     .coins-section {
         padding: 1.5rem;
+        background: var(--bg-card);
+        backdrop-filter: var(--glass-blur);
+        border: var(--glass-border);
     }
 
     .coins-title {

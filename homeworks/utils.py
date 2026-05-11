@@ -1,7 +1,8 @@
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
-from .models import Homework, Submission
+from .models import Homework, Submission, Notification
 from users.models import User
 
 
@@ -132,4 +133,53 @@ def award_coins_for_submission(submission: Submission, graded_by: User) -> int:
         submission.save(update_fields=["coin_rewarded", "coin_amount_awarded"])
 
     return actual_reward
+
+
+def revert_auto_graded_submissions(homework):
+    """
+    Deletes auto-graded 0% submissions for a homework and reverts coin penalties.
+    Used when a teacher extends an expired deadline.
+    """
+    auto_submissions = Submission.objects.filter(
+        homework=homework,
+        score_percent=0,
+        is_graded=True
+    ).filter(
+        Q(content__icontains="Avtomatik") | 
+        Q(content__icontains="Muddat o'tganligi")
+    )
+
+    reverted_count = 0
+    if auto_submissions.exists():
+        homework.reopened_at = timezone.now()
+        homework.save(update_fields=['reopened_at'])
+
+    for sub in auto_submissions:
+        with transaction.atomic():
+            student = User.objects.select_for_update().get(pk=sub.student.pk)
+            # Revert 1 coin penalty
+            student.coin_balance += 1
+            student.save(update_fields=['coin_balance'])
+
+            # Take back from receiver
+            teacher = homework.group.teachers.first()
+            receiver_obj = teacher if teacher else User.objects.filter(role=User.Role.ADMIN).first()
+            if receiver_obj:
+                receiver = User.objects.select_for_update().get(pk=receiver_obj.pk)
+                receiver.coin_balance = max(0, (receiver.coin_balance or 0) - 1)
+                receiver.save(update_fields=['coin_balance'])
+            
+            sub.delete()
+            reverted_count += 1
+
+            # Notify student
+            Notification.objects.create(
+                user=student,
+                notification_type=Notification.NotificationType.SYSTEM,
+                title="Vazifa muddati uzaytirildi",
+                message=f'"{homework.title}" vazifasi muddati uzaytirildi. Endi siz uni qaytadan topshirishingiz mumkin.',
+                related_homework=homework
+            )
+    
+    return reverted_count
 

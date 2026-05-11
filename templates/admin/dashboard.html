@@ -4,59 +4,64 @@
 {% block title %}Bosh sahifa - HooWork{% endblock %}
 
 {% block content %}
+<div class="mesh-bg">
+    <div class="mesh-blob mesh-blob-1"></div>
+    <div class="mesh-blob mesh-blob-2"></div>
+    <div class="mesh-blob mesh-blob-3"></div>
+</div>
+
 <!-- Header -->
-<div class="dashboard-header card mb-4">
+<div class="dashboard-header-modern mb-4">
     <div class="greeting">
-        <h1>Assalomu alaykum, {{ user.first_name|default:user.username }}!</h1>
-        <p>Tizimdagi so'nggi ma'lumotlar:</p>
+        <h1 class="text-gradient"><span class="dynamic-greeting">Assalomu alaykum</span>, {{ user.first_name|default:user.username }}!</h1>
+        <p>HooWork boshqaruv paneliga xush kelibsiz</p>
     </div>
-    <div class="actions">
-        <a href="{% url 'student_coins' %}" class="balance-chip"
-            style="text-decoration: none; background: #fef3c7; color: #92400e;">
-            <span class="label">Mening balansim:</span>
-            <span class="value">{{ admin_coin_balance }} tanga</span>
-        </a>
-        <a href="{% url 'request_coins' %}" class="btn btn-warning ml-2">
-            <i data-lucide="alert-circle"></i> <span>Tanga so'rash</span>
-        </a>
-        <a href="{% url 'admin_transfer_coins' %}" class="btn btn-secondary ml-2">
-            <i data-lucide="trending-up"></i> <span>Tanga yuborish</span>
-        </a>
-        <a href="{% url 'homework_create' %}" class="btn btn-primary">
-            <i data-lucide="plus"></i> <span>Yangi vazifa</span>
-        </a>
+    <div class="header-actions">
+        <div class="balance-card-mini">
+            <div class="label">Mening balansim</div>
+            <div class="value">{{ admin_coin_balance }} tanga</div>
+        </div>
+        <div class="action-group">
+            <a href="{% url 'homework_create' %}" class="btn btn-primary btn-glow">
+                <i data-lucide="plus-circle"></i> <span>Yangi vazifa</span>
+            </a>
+        </div>
     </div>
 </div>
 
 <!-- Stats Grid -->
-<div class="stats-grid mb-4">
-    <div class="stat-card">
-        <div class="stat-card-icon primary"><i data-lucide="book-open"></i></div>
-        <div class="stat-card-info">
-            <div class="stat-value">{{ total_courses }}</div>
-            <div class="stat-label">Kurslar</div>
+<div class="stats-grid-modern mb-4">
+    <div class="stat-card-modern primary">
+        <div class="stat-icon"><i data-lucide="book-open"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ total_courses }}</div>
+            <div class="label">Kurslar</div>
         </div>
+        <div class="stat-bg-icon"><i data-lucide="book-open"></i></div>
     </div>
-    <div class="stat-card">
-        <div class="stat-card-icon secondary"><i data-lucide="users"></i></div>
-        <div class="stat-card-info">
-            <div class="stat-value">{{ total_groups }}</div>
-            <div class="stat-label">Guruhlar</div>
+    <div class="stat-card-modern secondary">
+        <div class="stat-icon"><i data-lucide="users"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ total_groups }}</div>
+            <div class="label">Guruhlar</div>
         </div>
+        <div class="stat-bg-icon"><i data-lucide="users"></i></div>
     </div>
-    <div class="stat-card">
-        <div class="stat-card-icon accent"><i data-lucide="graduation-cap"></i></div>
-        <div class="stat-card-info">
-            <div class="stat-value">{{ total_students }}</div>
-            <div class="stat-label">Talabalar</div>
+    <div class="stat-card-modern accent">
+        <div class="stat-icon"><i data-lucide="graduation-cap"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ total_students }}</div>
+            <div class="label">Talabalar</div>
         </div>
+        <div class="stat-bg-icon"><i data-lucide="graduation-cap"></i></div>
     </div>
-    <div class="stat-card">
-        <div class="stat-card-icon warning"><i data-lucide="user-check"></i></div>
-        <div class="stat-card-info">
-            <div class="stat-value">{{ total_teachers }}</div>
-            <div class="stat-label">Ustozlar</div>
+    <div class="stat-card-modern warning">
+        <div class="stat-icon"><i data-lucide="user-check"></i></div>
+        <div class="stat-content">
+            <div class="value">{{ total_teachers }}</div>
+            <div class="label">Ustozlar</div>
         </div>
+        <div class="stat-bg-icon"><i data-lucide="user-check"></i></div>
     </div>
 </div>
 
@@ -64,29 +69,34 @@
     <!-- Main Section -->
     <div class="dashboard-main">
         <!-- Recent Homeworks -->
-        <div class="card mb-4">
+        <div class="card glass-card mb-4">
             <div class="card-header">
                 <h3 class="card-title">So'nggi vazifalar</h3>
                 <a href="{% url 'homework_list' %}" class="btn-link">Barchasi <i data-lucide="chevron-right"></i></a>
             </div>
             <div class="list-container">
                 {% for homework in recent_homeworks %}
-                <div class="list-item-custom">
-                    <div class="item-header">
-                        <span class="item-title">{{ homework.title }}</span>
-                        <span
-                            class="badge {% if homework.is_active %}badge-success{% else %}badge-secondary{% endif %}">
-                            {{ homework.is_active|yesno:"Faol,Yakunlangan" }}
-                        </span>
+                <div class="hw-item-modern">
+                    <div class="hw-icon">
+                        <i data-lucide="file-text"></i>
                     </div>
-                    <div class="item-details">
-                        {{ homework.group.name }} • {{ homework.deadline|date:"d.m, H:i" }}
-                    </div>
-                    <div class="item-progress">
-                        <div class="progress">
-                            <div class="progress-bar" style="width: {{ homework.submission_percent|default:0 }}%;"></div>
+                    <div class="hw-content">
+                        <div class="hw-top">
+                            <span class="hw-title">{{ homework.title }}</span>
+                            <span class="hw-badge {% if homework.is_active %}active{% endif %}">
+                                {{ homework.is_active|yesno:"Faol,Yakunlangan" }}
+                            </span>
                         </div>
-                        <span class="progress-text">{{ homework.submitted_count }}/{{ homework.total_students }}</span>
+                        <div class="hw-meta">
+                            <span><i data-lucide="users"></i> {{ homework.group.name }}</span>
+                            <span><i data-lucide="calendar"></i> {{ homework.deadline|date:"d.m, H:i" }}</span>
+                        </div>
+                        <div class="hw-progress-wrapper">
+                            <div class="progress">
+                                <div class="progress-bar" style="--progress: {{ homework.submission_percent|default:0 }}%; width: var(--progress);"></div>
+                            </div>
+                            <span class="progress-val">{{ homework.submitted_count }}/{{ homework.total_students }}</span>
+                        </div>
                     </div>
                 </div>
                 {% empty %}
@@ -95,55 +105,43 @@
             </div>
         </div>
 
-        <!-- Course Stats -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Kurslar statistikasi</h3>
-            </div>
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Kurs</th>
-                            <th class="hide-mobile">Guruh</th>
-                            <th class="hide-mobile">Talaba</th>
-                            <th>O'rtacha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for stat in course_stats %}
-                        <tr>
-                            <td><strong>{{ stat.course.name }}</strong></td>
-                            <td class="hide-mobile">{{ stat.groups }}</td>
-                            <td class="hide-mobile">{{ stat.students }}</td>
-                            <td>
-                                <span
-                                    class="badge {% if stat.avg_score >= 80 %}badge-success{% elif stat.avg_score >= 60 %}badge-warning{% else %}badge-danger{% endif %}">
-                                    {{ stat.avg_score|floatformat:0 }}%
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <!-- Quick Actions Grid -->
+        <div class="quick-actions-modern mb-4">
+            <a href="{% url 'user_list' %}?role=STUDENT" class="quick-card p1">
+                <div class="q-icon"><i data-lucide="graduation-cap"></i></div>
+                <span>O'quvchilar</span>
+            </a>
+            <a href="{% url 'user_list' %}?role=TEACHER" class="quick-card p2">
+                <div class="q-icon"><i data-lucide="user-check"></i></div>
+                <span>Ustozlar</span>
+            </a>
+            <a href="{% url 'course_list' %}" class="quick-card p3">
+                <div class="q-icon"><i data-lucide="book-open"></i></div>
+                <span>Kurslar</span>
+            </a>
+            <a href="{% url 'group_list' %}" class="quick-card p4">
+                <div class="q-icon"><i data-lucide="layout-grid"></i></div>
+                <span>Guruhlar</span>
+            </a>
         </div>
     </div>
 
     <!-- Sidebar Section -->
     <div class="dashboard-sidebar">
         <!-- Leaderboard -->
-        <div class="card mb-4">
-            <h3 class="card-title mb-3"><i data-lucide="trophy"></i> Top o'quvchilar</h3>
-            <div class="leaderboard">
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <h3 class="card-title"><i data-lucide="trophy" class="text-warning"></i> Top o'quvchilar</h3>
+            </div>
+            <div class="leaderboard-modern">
                 {% for student in top_students %}
-                <div class="leaderboard-item">
-                    <div class="rank">{{ forloop.counter }}</div>
-                    <div class="details">
+                <div class="leader-item">
+                    <div class="leader-rank rank-{{ forloop.counter }}">{{ forloop.counter }}</div>
+                    <div class="leader-info">
                         <div class="name">{{ student.get_full_name|default:student.username }}</div>
-                        <div class="group-name">{{ student.group_name }}</div>
+                        <div class="group">{{ student.group_name }}</div>
                     </div>
-                    <div class="score">{{ student.avg_score|floatformat:0 }}%</div>
+                    <div class="leader-score">{{ student.avg_score|floatformat:0 }}%</div>
                 </div>
                 {% empty %}
                 <p class="text-center py-3 text-muted">Ma'lumot yo'q</p>
@@ -151,214 +149,252 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="card">
-            <h3 class="card-title mb-3">Tezkor amallar</h3>
-            <div class="quick-grid">
-                <a href="{% url 'user_list' %}?role=STUDENT" class="q-btn"><i
-                        data-lucide="users"></i><span>O'quvchilar</span></a>
-                <a href="{% url 'user_list' %}?role=TEACHER" class="q-btn"><i
-                        data-lucide="user-check"></i><span>Ustozlar</span></a>
-                <a href="{% url 'course_list' %}" class="q-btn"><i data-lucide="book-open"></i><span>Kurslar</span></a>
-                <a href="{% url 'group_list' %}" class="q-btn"><i
-                        data-lucide="layout-grid"></i><span>Guruhlar</span></a>
+        <!-- Tanga Operations -->
+        <div class="card glass-card">
+            <h3 class="card-title mb-3">Tanga operatsiyalari</h3>
+            <div class="tanga-actions">
+                <a href="{% url 'request_coins' %}" class="btn btn-outline-warning w-100 mb-2">
+                    <i data-lucide="alert-circle"></i> Tanga so'rash
+                </a>
+                <a href="{% url 'admin_transfer_coins' %}" class="btn btn-outline-secondary w-100">
+                    <i data-lucide="send"></i> Tanga yuborish
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .dashboard-header {
+    .dashboard-header-modern {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1.5rem;
-        background: var(--white);
+        padding: 1rem 0; /* Reduced padding */
     }
 
-    .dashboard-header h1 {
-        font-size: 1.5rem;
-        color: var(--text-main);
+    .dashboard-header-modern h1 {
+        font-size: 1.75rem; /* Smaller font */
+        font-weight: 800;
         margin-bottom: 0.25rem;
     }
 
-    .dashboard-header p {
-        color: var(--text-muted);
-    }
-
-    .stat-card {
+    .header-actions {
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 1.25rem;
-        background: var(--white);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--gray-100);
     }
 
-    .stat-card-icon {
+    .balance-card-mini {
+        background: var(--bg-card);
+        padding: 0.5rem 1rem; /* Compact padding */
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        text-align: right;
+    }
+
+    .balance-card-mini .label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .balance-card-mini .value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--secondary);
+    }
+
+    /* Stats Grid Modern */
+    .stats-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* More columns */
+        gap: 1rem; /* Smaller gap */
+    }
+
+    .stat-card-modern {
+        position: relative;
+        padding: 1.25rem; /* Compact padding */
+        border-radius: 20px;
+        overflow: hidden;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+
+    .stat-card-modern.primary { background: linear-gradient(135deg, rgba(63, 63, 201, 0.7), rgba(124, 58, 237, 0.7)); }
+    .stat-card-modern.secondary { background: linear-gradient(135deg, rgba(5, 150, 105, 0.7), rgba(16, 185, 129, 0.7)); }
+    .stat-card-modern.accent { background: linear-gradient(135deg, rgba(190, 18, 60, 0.7), rgba(244, 63, 94, 0.7)); }
+    .stat-card-modern.warning { background: linear-gradient(135deg, rgba(180, 83, 9, 0.7), rgba(245, 158, 11, 0.7)); }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+    }
+
+    .stat-icon i { width: 28px; height: 28px; }
+
+    .stat-content { z-index: 2; }
+    .stat-content .value { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+    .stat-content .label { font-size: 0.85rem; opacity: 0.9; font-weight: 600; margin-top: 4px; }
+
+    .stat-bg-icon {
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        font-size: 5rem;
+        opacity: 0.1;
+        transform: rotate(-15deg);
+        z-index: 1;
+    }
+
+    /* Homework Items Modern */
+    .hw-item-modern {
+        display: flex;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--gray-100);
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+
+    .hw-item-modern:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: var(--primary);
+    }
+
+    .hw-icon {
         width: 48px;
         height: 48px;
+        background: var(--primary-light);
+        color: var(--primary);
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
     }
 
-    .stat-card-icon.primary {
-        background: var(--primary-light);
-        color: var(--primary);
-    }
-
-    .stat-card-icon.secondary {
-        background: var(--secondary-light);
-        color: var(--secondary);
-    }
-
-    .stat-card-icon.accent {
-        background: #fee2e2;
-        color: #ef4444;
-    }
-
-    .stat-card-icon.warning {
-        background: #fef9c3;
-        color: #854d0e;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
+    .hw-content { flex: 1; }
+    .hw-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .hw-title { font-weight: 700; font-size: 1rem; color: var(--text-main); }
+    
+    .hw-badge {
+        font-size: 0.7rem;
         font-weight: 700;
-        color: var(--text-main);
-    }
-
-    .stat-label {
-        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: var(--gray-200);
         color: var(--text-muted);
-        text-transform: uppercase;
     }
+    .hw-badge.active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 
-    .dashboard-layout-grid {
+    .hw-meta { display: flex; gap: 1rem; margin-bottom: 0.75rem; }
+    .hw-meta span { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+    .hw-meta i { width: 14px; height: 14px; }
+
+    .hw-progress-wrapper { display: flex; align-items: center; gap: 1rem; }
+    .hw-progress-wrapper .progress { flex: 1; height: 6px; }
+    .progress-val { font-size: 0.75rem; font-weight: 700; color: var(--text-main); }
+
+    /* Quick Actions */
+    .quick-actions-modern {
         display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 1.5rem;
-    }
-
-    .list-item-custom {
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-
-    .list-item-custom:last-child {
-        border-bottom: none;
-    }
-
-    .item-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.25rem;
-    }
-
-    .item-title {
-        font-weight: 600;
-        font-size: 1rem;
-    }
-
-    .item-details {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 0.75rem;
-    }
-
-    .item-progress {
-        display: flex;
-        align-items: center;
+        grid-template-columns: repeat(4, 1fr);
         gap: 1rem;
     }
 
-    .item-progress .progress {
-        flex: 1;
-        height: 6px;
-    }
-
-    .leaderboard-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid var(--gray-50);
-    }
-
-    .leaderboard-item:last-child {
-        border-bottom: none;
-    }
-
-    .rank {
-        width: 24px;
-        font-weight: 700;
-        color: var(--text-muted);
-    }
-
-    .leaderboard-item .details {
-        flex: 1;
-    }
-
-    .leaderboard-item .name {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .leaderboard-item .group-name {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-    }
-
-    .leaderboard-item .score {
-        font-weight: 700;
-        color: var(--primary);
-    }
-
-    .quick-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-    }
-
-    .q-btn {
+    .quick-card {
+        padding: 1.5rem;
+        border-radius: 20px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        border: 1px solid var(--gray-100);
+        background: var(--bg-card);
+    }
+
+    .quick-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .quick-card.p1 .q-icon { color: #6366f1; background: rgba(99, 102, 241, 0.1); }
+    .quick-card.p2 .q-icon { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+    .quick-card.p3 .q-icon { color: #f43f5e; background: rgba(244, 63, 94, 0.1); }
+    .quick-card.p4 .q-icon { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+
+    .q-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .q-icon i { width: 24px; height: 24px; }
+
+    /* Leaderboard Modern */
+    .leader-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         padding: 1rem;
-        background: var(--gray-50);
-        border-radius: var(--radius);
-        gap: 0.5rem;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        background: rgba(255,255,255,0.02);
+    }
+
+    .leader-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
         font-size: 0.8rem;
-        font-weight: 600;
+        background: var(--gray-200);
+        color: var(--text-muted);
+    }
+    .rank-1 { background: #fcd34d; color: #92400e; }
+    .rank-2 { background: #e2e8f0; color: #475569; }
+    .rank-3 { background: #fdba74; color: #9a3412; }
+
+    .leader-info { flex: 1; }
+    .leader-info .name { font-weight: 700; font-size: 0.9rem; }
+    .leader-info .group { font-size: 0.75rem; color: var(--text-muted); }
+    .leader-score { font-weight: 800; color: var(--primary); }
+
+    @media (max-width: 1100px) {
+        .dashboard-layout-grid { grid-template-columns: 1fr; }
+        .quick-actions-modern { grid-template-columns: repeat(2, 1fr); }
     }
 
-    .q-btn:hover {
-        background: var(--primary-light);
-        color: var(--primary);
-    }
-
-    @media (max-width: 900px) {
-        .dashboard-layout-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .hide-mobile {
-            display: none;
-        }
-
-        .dashboard-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .dashboard-header .btn {
-            width: 100%;
-        }
+    @media (max-width: 600px) {
+        .dashboard-header-modern { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        .header-actions { width: 100%; flex-direction: column; align-items: stretch; }
+        .balance-card-mini { text-align: center; }
+        .stats-grid-modern { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
