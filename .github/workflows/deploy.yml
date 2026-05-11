@@ -19,13 +19,13 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "--- DIRECTORY LISTING ---"
-            ls -la /home/webdevaj
-            echo "--- ACTIVE SYSTEMD SERVICES ---"
-            systemctl list-units --type=service | grep -E "joylinks|hoowork|gunicorn"
-            echo "--- NGINX CONFIGURATION ---"
-            ls -la /etc/nginx/sites-enabled
-            sudo cat /etc/nginx/sites-enabled/* | grep -C 5 "proxy_pass"
-            echo "--- SERVICE STATUS ---"
-            sudo systemctl status joylinks || true
-            sudo journalctl -u joylinks -n 20 --no-pager || true
+            cd /home/webdevaj/joylinks_Hoowork
+            git fetch origin main
+            git reset --hard origin/main
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            python manage.py collectstatic --noinput --clear
+            
+            # Restart the CORRECT active service
+            sudo systemctl restart joylinks_test
