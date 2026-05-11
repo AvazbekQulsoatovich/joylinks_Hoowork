@@ -22,10 +22,31 @@ jobs:
             cd /home/webdevaj/joylinks_Hoowork
             git fetch origin main
             git reset --hard origin/main
+            
+            # Ensure virtualenv exists and is updated
+            if [ ! -d ".venv" ]; then python3 -m venv .venv; fi
             source .venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
             python manage.py collectstatic --noinput --clear
             
-            # Restart the CORRECT active service
-            sudo systemctl restart joylinks_test
+            # Create/Update the systemd service with CORRECT paths
+            sudo bash -c "cat <<EOF > /etc/systemd/system/joylinks.service
+            [Unit]
+            Description=Gunicorn instance for HooWork
+            After=network.target
+
+            [Service]
+            User=webdevaj
+            Group=www-data
+            WorkingDirectory=/home/webdevaj/joylinks_Hoowork
+            Environment=\"PATH=/home/webdevaj/joylinks_Hoowork/.venv/bin\"
+            ExecStart=/home/webdevaj/joylinks_Hoowork/.venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/webdevaj/joylinks_Hoowork/joylinks_Hoowork.sock core.wsgi:application
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF"
+
+            sudo systemctl daemon-reload
+            sudo systemctl restart joylinks
+            sudo systemctl enable joylinks
