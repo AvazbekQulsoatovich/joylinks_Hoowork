@@ -25,7 +25,6 @@ urlpatterns = [
     path('student/', student_dashboard, name='student_dashboard'),
     path('teacher/', teacher_dashboard, name='teacher_dashboard'),
     path('admin-panel/', admin_dashboard, name='admin_dashboard'),
-    path('404-test/', lambda r: render(r, '404.html'), name='404_test'),
     path('', login_view),
 ]
 

@@ -22,17 +22,13 @@ jobs:
             cd /home/webdevaj/joylinks_Hoowork
             git fetch origin main
             git reset --hard origin/main
-            
-            # Ensure virtualenv exists and is updated
-            if [ ! -d ".venv" ]; then python3 -m venv .venv; fi
             source .venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate
             python manage.py collectstatic --noinput --clear
             
-            # Fix ALLOWED_HOSTS in .env on the server
+            # Ensure ALLOWED_HOSTS is correct
             sed -i "s/ALLOWED_HOSTS=.*/ALLOWED_HOSTS=hoowork.joylinks.uz,www.hoowork.uz,95.182.119.84,localhost,127.0.0.1/" .env || echo "ALLOWED_HOSTS=hoowork.joylinks.uz,www.hoowork.uz,95.182.119.84,localhost,127.0.0.1" >> .env
 
-            # Restart the service (Manual restart required if sudo password is set)
-            # But we try it here anyway
+            # Restart the service
             sudo systemctl restart joylinks
