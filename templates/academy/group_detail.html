@@ -12,7 +12,7 @@
         <h1 class="page-title">{{ group.name }}</h1>
         <p class="page-subtitle">{{ group.course.name }} kursi</p>
     </div>
-    {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+    {% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}
     <div class="header-actions">
         <a href="{% url 'group_update' group.pk %}" class="btn btn-secondary">
             <i data-lucide="edit"></i> <span>Tahrirlash</span>
@@ -40,11 +40,11 @@
                         <tr>
                             <th>F.I.Sh</th>
                             <th class="hide-mobile">Username</th>
-                            {% if user.role != 'STUDENT' %}
+                            {% if request.user.role != 'STUDENT' %}
                             <th>Ball</th>
                             <th class="hide-mobile">Topshirgan</th>
                             {% endif %}
-                            {% if user.role == 'ADMIN' %}
+                            {% if request.user.role == 'ADMIN' %}
                             <th style="width: 50px;"></th>
                             {% endif %}
                         </tr>
@@ -62,7 +62,7 @@
                                 </span>
                             </td>
                             <td class="hide-mobile">{{ s.submitted }}/{{ s.total }}</td>
-                            {% if user.role == 'ADMIN' %}
+                            {% if request.user.role == 'ADMIN' %}
                             <td>
                                 <form action="{% url 'remove_student_from_group' group.pk s.student.pk %}" method="post"
                                     onsubmit="return confirm('Talabani guruhdan chiqarishni tasdiqlaysizmi?')">
@@ -80,7 +80,7 @@
                         <tr>
                             <td><strong>{{ s.get_full_name|default:s.username }}</strong></td>
                             <td class="text-muted">{{ s.username }}</td>
-                            {% if user.role == 'ADMIN' %}
+                            {% if request.user.role == 'ADMIN' %}
                             <td>
                                 <form action="{% url 'remove_student_from_group' group.pk s.pk %}" method="post"
                                     onsubmit="return confirm('Talabani guruhdan chiqarishni tasdiqlaysizmi?')">
@@ -100,7 +100,7 @@
             {% else %}
             <div class="empty-state">
                 <p>Ushbu guruhda hali talabalar yo'q.</p>
-                {% if user.role == 'ADMIN' %}
+                {% if request.user.role == 'ADMIN' %}
                 <a href="{% url 'add_students_to_group' group.pk %}" class="btn btn-sm btn-primary mt-2">Talaba
                     qo'shish</a>
                 {% endif %}
@@ -112,7 +112,7 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Vazifalar</h3>
-                {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+                {% if request.user.role == 'TEACHER' or request.user.role == 'ADMIN' %}
                 <a href="{% url 'homework_create' %}?group={{ group.pk }}" class="btn btn-sm btn-primary">
                     <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Yangi vazifa
                 </a>
@@ -169,7 +169,7 @@
             <p class="text-muted">O'qituvchi biriktirilmagan.</p>
             {% endfor %}
 
-            {% if user.role == 'ADMIN' %}
+            {% if request.user.role == 'ADMIN' %}
             <button class="btn btn-sm btn-outline mt-2" style="width: 100%;"
                 onclick="document.getElementById('change-teacher-modal').style.display='block'">
                 Almashtirish
@@ -177,7 +177,7 @@
             {% endif %}
         </div>
 
-        {% if user.role != 'STUDENT' %}
+        {% if request.user.role != 'STUDENT' %}
         <div class="card mb-3">
             <h3 class="card-title mb-3">Guruh statistikasi</h3>
             <div class="stat-card" style="box-shadow: none; padding: 1rem;">

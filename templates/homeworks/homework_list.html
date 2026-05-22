@@ -8,7 +8,7 @@
         <h1 class="page-title">Vazifalar</h1>
         <p class="page-subtitle">Barcha uyga vazifalar</p>
     </div>
-    {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+    {% if request.user.role == 'TEACHER' or request.user.role == 'ADMIN' %}
     <a href="{% url 'homework_create' %}" class="btn btn-primary">
         <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
         Yangi Vazifa
@@ -27,7 +27,7 @@
                     <th>Sarlavha</th>
                     <th>Guruh</th>
                     <th>Deadline</th>
-                    {% if user.role == 'STUDENT' %}
+                    {% if request.user.role == 'STUDENT' %}
                     <th>Status</th>
                     {% else %}
                     <th>Topshirganlar</th>
@@ -60,7 +60,7 @@
                         {{ hw.deadline|date:"d.m.Y H:i" }}
                         {% endif %}
                     </td>
-                    {% if user.role == 'STUDENT' %}
+                    {% if request.user.role == 'STUDENT' %}
                     <td>
                         {% if hw.is_locked %}
                         <span class="badge badge-secondary"><i data-lucide="lock"></i> Qulflangan</span>
@@ -89,7 +89,7 @@
                     <td>
                         <div style="display: flex; gap: 0.5rem;">
                             <a href="{% url 'homework_detail' hw.pk %}" class="btn btn-sm btn-outline"><i data-lucide="eye"></i></a>
-                            {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+                            {% if request.user.role == 'TEACHER' or request.user.role == 'ADMIN' %}
                             <a href="{% url 'homework_update' hw.pk %}" class="btn btn-sm btn-secondary"><i data-lucide="edit"></i></a>
                             <a href="{% url 'homework_delete' hw.pk %}" class="btn btn-sm btn-outline text-danger" title="O'chirish">
                                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
@@ -118,7 +118,7 @@
                 </div>
             </div>
             <div class="hw-card-footer">
-                {% if user.role == 'STUDENT' %}
+                {% if request.user.role == 'STUDENT' %}
                 <div class="hw-status">
                     {% if hw.is_locked %}
                     <span class="status-badge locked">Qulflangan</span>
@@ -154,7 +154,7 @@
         <i data-lucide="file-text" style="width: 64px; height: 64px;"></i>
         <h3>Vazifalar yo'q</h3>
         <p>Hozircha vazifalar mavjud emas</p>
-        {% if user.role == 'TEACHER' %}
+        {% if request.user.role == 'TEACHER' %}
         <a href="{% url 'homework_create' %}" class="btn btn-primary mt-2">
             <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
             Vazifa yaratish

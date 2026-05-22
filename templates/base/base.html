@@ -44,7 +44,7 @@
 </head>
 
 <body>
-  {% if user.is_authenticated %}
+  {% if request.user.is_authenticated %}
   <div class="dashboard-layout">
     <!-- Mobile Header -->
     <header class="mobile-header">
@@ -58,21 +58,21 @@
           <i data-lucide="moon" class="dark-icon"></i>
           <i data-lucide="sun" class="light-icon"></i>
         </button>
-        {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+        {% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}
         <a href="{% url 'admin_dashboard' %}" class="mobile-action-btn">
           <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
         </a>
         {% endif %}
         <a href="{% url 'profile' %}" class="sidebar-user-avatar"
           style="width: 36px; height: 36px; font-size: 0.8rem; text-decoration: none;">
-          {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+          {{ request.user.first_name|slice:":1"|default:request.user.username|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
         </a>
       </div>
     </header>
 
     <!-- Mobile Bottom Navigation (Simplified) -->
     <nav class="mobile-bottom-nav">
-      <a href="{% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+      <a href="{% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif request.user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
         class="mobile-nav-item {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'teacher_dashboard' or request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
         <i data-lucide="layout-dashboard"></i>
         <span>Asosiy</span>
@@ -92,8 +92,8 @@
         class="mobile-nav-item {% if 'notifications' in request.path %}active{% endif %}">
         <div class="nav-icon-wrapper">
           <i data-lucide="bell"></i>
-          {% if user.unread_notifications_count > 0 %}
-          <span class="nav-badge-mobile">{{ user.unread_notifications_count }}</span>
+          {% if request.user.unread_notifications_count > 0 %}
+          <span class="nav-badge-mobile">{{ request.user.unread_notifications_count }}</span>
           {% endif %}
         </div>
         <span>Xabarlar</span>
@@ -127,7 +127,7 @@
             <span>Market</span>
           </a>
 
-          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          {% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}
           <a href="{% url 'market_product_list' %}"
             class="menu-grid-item {% if 'market/admin' in request.path %}active{% endif %}">
             <div class="menu-grid-icon"><i data-lucide="shopping-basket"></i></div>
@@ -139,7 +139,7 @@
           </a>
           {% endif %}
 
-          {% if user.role == 'STUDENT' %}
+          {% if request.user.role == 'STUDENT' %}
           <a href="{% url 'student_certificates' %}"
             class="menu-grid-item {% if 'my-certificates' in request.path %}active{% endif %}">
             <div class="menu-grid-icon"><i data-lucide="award"></i></div>
@@ -180,7 +180,7 @@
       <nav>
         <ul>
           <li>
-            <a href="{% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+            <a href="{% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}{% url 'admin_dashboard' %}{% elif request.user.role == 'TEACHER' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
               class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'teacher_dashboard' or request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
               <i data-lucide="layout-dashboard"></i> <span class="nav-text">Bosh sahifa</span>
             </a>
@@ -190,8 +190,8 @@
               class="nav-link {% if 'notifications' in request.path %}active{% endif %}">
               <i data-lucide="bell"></i>
               <span class="nav-text">Bildirishnomalar</span>
-              {% if user.unread_notifications_count > 0 %}
-              <span class="nav-badge">{{ user.unread_notifications_count }}</span>
+              {% if request.user.unread_notifications_count > 0 %}
+              <span class="nav-badge">{{ request.user.unread_notifications_count }}</span>
               {% endif %}
             </a>
           </li>
@@ -205,7 +205,7 @@
               <i data-lucide="users"></i> <span class="nav-text">Guruhlar</span>
             </a>
           </li>
-          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          {% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}
           <li>
             <a href="{% url 'user_list' %}?role=STUDENT"
               class="nav-link {% if 'users' in request.path and 'STUDENT' in request.GET.role %}active{% endif %}">
@@ -224,7 +224,7 @@
               <i data-lucide="file-text"></i> <span class="nav-text">Uyga vazifalar</span>
             </a>
           </li>
-          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          {% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}
           <li>
             <a href="{% url 'statistics' %}" class="nav-link {% if 'statistics' in request.path %}active{% endif %}">
               <i data-lucide="bar-chart-3"></i> <span class="nav-text">Statistika</span>
@@ -236,7 +236,7 @@
             </a>
           </li>
           {% endif %}
-          {% if user.role == 'ADMIN' or user.role == 'MODERATOR' %}
+          {% if request.user.role == 'ADMIN' or request.user.role == 'MODERATOR' %}
           <li>
             <a href="{% url 'certificate_list' %}"
               class="nav-link {% if 'certificates' in request.path and 'my-certificates' not in request.path %}active{% endif %}">
@@ -257,7 +257,7 @@
             </a>
           </li>
 
-          {% if user.role == 'STUDENT' %}
+          {% if request.user.role == 'STUDENT' %}
           <li>
             <a href="{% url 'student_certificates' %}"
               class="nav-link {% if 'my-certificates' in request.path %}active{% endif %}">
@@ -284,11 +284,11 @@
       <!-- User Info -->
       <div class="sidebar-user">
         <div class="sidebar-user-avatar">
-          {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+          {{ request.user.first_name|slice:":1"|default:request.user.username|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
         </div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</div>
-          <div class="sidebar-user-role">{{ user.get_role_display }}</div>
+          <div class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+          <div class="sidebar-user-role">{{ request.user.get_role_display }}</div>
         </div>
       </div>
 

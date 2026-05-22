@@ -20,4 +20,10 @@ staticfiles/
 .idea/
 venv/
 env/
-.venv
+.venv/
+
+# IDE / Dev Tools
+pyrefly.toml
+
+# Dev-only scripts (not needed on server)
+scripts/

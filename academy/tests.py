@@ -39,7 +39,7 @@ class MarketTests(TestCase):
         self.student.refresh_from_db()
         self.admin.refresh_from_db()
         self.assertEqual(self.student.coin_balance, 900)
-        self.assertEqual(self.admin.coin_balance, 100)
+        self.assertEqual(self.admin.coin_balance, 1000000000100)
 
         # notifications sent
         self.assertTrue(

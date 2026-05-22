@@ -225,12 +225,12 @@ class SubmissionCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ('homework', 'text_answer', 'is_code', 'code_language', 'file')
     
     def validate_file(self, value):
-        """5MB dan katta bo'lgan faylni qabul qilmaslik"""
+        """30MB dan katta bo'lgan faylni qabul qilmaslik"""
         if value:
-            max_size = 5 * 1024 * 1024  # 5 MB
+            max_size = 30 * 1024 * 1024  # 30 MB
             if value.size > max_size:
                 raise serializers.ValidationError(
-                    "5 MB dan katta faylni yuklay olmaysiz. Fayl hajmi: {:.2f} MB".format(
+                    "30 MB dan katta faylni yuklay olmaysiz. Fayl hajmi: {:.2f} MB".format(
                         value.size / (1024 * 1024)
                     )
                 )

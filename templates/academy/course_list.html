@@ -8,7 +8,7 @@
         <h1 class="page-title">Kurslar</h1>
         <p class="page-subtitle">Akademiyadagi barcha kurslar</p>
     </div>
-    {% if user.role == 'ADMIN' %}
+    {% if request.user.role == 'ADMIN' %}
     <a href="{% url 'course_create' %}" class="btn btn-primary">
         <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
         Yangi Kurs
@@ -24,7 +24,7 @@
                 style="width: 48px; height: 48px; background: var(--primary-light); color: var(--primary); border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
                 <i data-lucide="book" style="width: 24px; height: 24px;"></i>
             </div>
-            {% if user.role == 'ADMIN' %}
+            {% if request.user.role == 'ADMIN' %}
             <div style="display: flex; gap: 0.5rem;">
                 <a href="{% url 'course_update' course.pk %}" class="btn btn-sm btn-outline" title="Tahrirlash">
                     <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
@@ -59,7 +59,7 @@
         <div class="empty-state">
             <i data-lucide="book-open" style="width: 64px; height: 64px;"></i>
             <h3>Kurslar mavjud emas</h3>
-            {% if user.role == 'ADMIN' %}
+            {% if request.user.role == 'ADMIN' %}
             <p>Yangi kurs yaratish tugmasini bosing</p>
             <a href="{% url 'course_create' %}" class="btn btn-primary mt-2">Yaratish</a>
             {% endif %}

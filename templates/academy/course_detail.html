@@ -11,7 +11,7 @@
         </a>
         <h1 class="page-title">{{ course.name }}</h1>
     </div>
-    {% if user.role == 'ADMIN' %}
+    {% if request.user.role == 'ADMIN' %}
     <div style="display: flex; gap: 1rem;">
         <a href="{% url 'course_update' course.pk %}" class="btn btn-secondary">
             <i data-lucide="edit" style="width: 18px; height: 18px;"></i> Tahrirlash
@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        {% if user.role == 'ADMIN' %}
+        {% if request.user.role == 'ADMIN' %}
         <a href="{% url 'export_course' course.pk %}" class="btn btn-success" style="width: 100%;">
             <i data-lucide="download" style="width: 18px; height: 18px;"></i>
             Excel Hisobot Yuklash

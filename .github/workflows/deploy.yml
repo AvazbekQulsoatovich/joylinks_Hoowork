@@ -19,16 +19,24 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /home/webdevaj/joylinks_Hoowork
+
+            # Pull latest code
             git fetch origin main
             git reset --hard origin/main
+
+            # Activate virtualenv and install dependencies
             source .venv/bin/activate
-            pip install -r requirements.txt
-            python manage.py migrate
+            pip install -r requirements.txt --quiet
+
+            # Run database migrations
+            python manage.py migrate --noinput
+
+            # Collect static files
             python manage.py collectstatic --noinput --clear
-            
-            # Ensure ALLOWED_HOSTS is correct
-            sed -i "s/ALLOWED_HOSTS=.*/ALLOWED_HOSTS=hoowork.joylinks.uz,www.hoowork.uz,95.182.119.84,localhost,127.0.0.1/" .env || echo "ALLOWED_HOSTS=hoowork.joylinks.uz,www.hoowork.uz,95.182.119.84,localhost,127.0.0.1" >> .env
 
             # Restart the service
             sudo systemctl restart joylinks
+
+            echo "=== Deployment completed successfully ==="

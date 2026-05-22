@@ -10,7 +10,7 @@
     </div>
     <div class="balance-chip">
         <span class="label">Joriy balans</span>
-        <span class="value">{{ user.display_coin_balance }} tanga</span>
+        <span class="value">{{ request.user.display_coin_balance }} tanga</span>
     </div>
 </header>
 
@@ -29,12 +29,12 @@
                 </div>
             </div>
             {% empty %}
-            {% if not coin_rewards and user.role == "STUDENT" %}
+            {% if not coin_rewards and request.user.role == "STUDENT" %}
             <div class="empty-state sm">Hozircha tushumlar yo'q.</div>
             {% endif %}
             {% endfor %}
 
-            {% if user.role == "STUDENT" %}
+            {% if request.user.role == "STUDENT" %}
             {% for sub in coin_rewards %}
             <div class="list-item-custom sm">
                 <div class="item-title-sm">
@@ -77,10 +77,10 @@
         <!-- Chiqimlar -->
         <section class="card">
             <h2 class="coins-subtitle">
-                {% if user.role == "STUDENT" %}Marketdan xaridlar{% else %}Berilgan mukofotlar{% endif %}
+                {% if request.user.role == "STUDENT" %}Marketdan xaridlar{% else %}Berilgan mukofotlar{% endif %}
             </h2>
             <div class="list-container mini">
-                {% if user.role == "STUDENT" %}
+                {% if request.user.role == "STUDENT" %}
                 {% for purchase in coin_purchases %}
                 <div class="list-item-custom sm">
                     <div class="item-title-sm">

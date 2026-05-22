@@ -25,6 +25,7 @@ urlpatterns = [
     path('student/', student_dashboard, name='student_dashboard'),
     path('teacher/', teacher_dashboard, name='teacher_dashboard'),
     path('admin-panel/', admin_dashboard, name='admin_dashboard'),
+    path('404/', lambda r: render(r, '404.html', status=404), name='custom_404'),
     path('', login_view),
 ]
 
@@ -32,8 +33,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 def custom_page_not_found(request, exception=None):
-    if request.user.is_authenticated:
-        return redirect_by_role(request.user)
-    return redirect('login')
+    return render(request, '404.html', status=404)
 
 handler404 = 'core.urls.custom_page_not_found'

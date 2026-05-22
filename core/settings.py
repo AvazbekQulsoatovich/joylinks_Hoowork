@@ -139,10 +139,15 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Axes Configuration
+import sys
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # 1 hour
 AXES_LOCKOUT_TEMPLATE = 'homeworks/lockout.html'
 AXES_RESET_ON_SUCCESS = True
+
+# Disable Axes during tests as self.client.login() does not pass a request object
+if 'test' in sys.argv:
+    AXES_ENABLED = False
 
 
 # Internationalization
@@ -259,9 +264,9 @@ CORS_ALLOW_CREDENTIALS = True
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# File Upload Limits (10 MB)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 * 1024 * 1024
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
-# Note: Ensure Nginx 'client_max_body_size 10M;' is set in server config.
+# File Upload Limits (30 MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 31457280  # 30 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 31457280
+# Note: Ensure Nginx 'client_max_body_size 30M;' is set in server config.
 
 

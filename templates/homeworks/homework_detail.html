@@ -18,13 +18,13 @@
         </div>
     </div>
     <div class="header-actions">
-        {% if user.role == 'STUDENT' and can_submit and not submission %}
+        {% if request.user.role == 'STUDENT' and can_submit and not submission %}
         <a href="{% url 'submission_create' homework.pk %}" class="btn btn-primary btn-glow">
             <i data-lucide="send"></i>
             Topshirish
         </a>
         {% endif %}
-        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+        {% if request.user.role == 'TEACHER' or request.user.role == 'ADMIN' %}
         <a href="{% url 'homework_update' homework.pk %}" class="btn btn-secondary">
             <i data-lucide="edit"></i>
             Tahrirlash
@@ -66,7 +66,7 @@
         </div>
         {% endif %}
         
-        {% if user.role == 'STUDENT' %}
+        {% if request.user.role == 'STUDENT' %}
         
         <!-- O'quvchi javobi -->
         {% if submission %}
@@ -135,7 +135,7 @@
         {% endif %}
         {% endif %}
 
-        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+        {% if request.user.role == 'TEACHER' or request.user.role == 'ADMIN' %}
         <!-- O'qituvchi uchun: barcha topshiriqlar -->
         <div class="card glass-card">
             <div class="card-header">
@@ -284,7 +284,7 @@
             </div>
         </div>
 
-        {% if user.role == 'TEACHER' or user.role == 'ADMIN' %}
+        {% if request.user.role == 'TEACHER' or request.user.role == 'ADMIN' %}
         <div class="card glass-card">
             <h4 class="info-title">Statistika</h4>
             <div class="stat-circle-wrapper">

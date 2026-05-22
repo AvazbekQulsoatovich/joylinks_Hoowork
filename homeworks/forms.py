@@ -29,7 +29,7 @@ class HomeworkForm(forms.ModelForm):
             'group': 'Guruh',
             'title': 'Sarlavha',
             'description': 'Tavsif',
-            'file': 'Fayl (ixtiyoriy, max 10MB)',
+            'file': 'Fayl (ixtiyoriy, max 30MB)',
             'max_score': 'Maksimal ball',
             'sequence': 'Tartib raqami',
         }
@@ -90,7 +90,7 @@ class SubmissionForm(forms.ModelForm):
         }
         labels = {
             'content': 'Javob',
-            'file': 'Fayl (ixtiyoriy, max 10MB)',
+            'file': 'Fayl (ixtiyoriy, max 30MB)',
         }
     
     def save(self, commit=True):
